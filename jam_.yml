@@ -1,0 +1,25 @@
+
+vendors:
+    # ReservoirSample-PyTorch:
+    #     root: vendors/pytorch_reservoir
+    # AdvancedIndexing-PyTorch:
+    #     root: vendors/AdvancedIndexing-PyTorch
+    # SynchronizedBatchNorm-PyTorch:
+    #     root: vendors/Synchronized-BatchNorm-PyTorch
+    # PreciseRoIPooling-PyTorch:
+    #     root: vendors/PreciseRoIPooling/pytorch
+    # SceneGraphParser:
+    #     root: vendors/SceneGraphParser
+    # JacMLDash:
+    #     root: vendors/JacMLDash
+    # PyGCO:
+    #     root: vendors/PyGCO
+    # PyPatchMatch:
+    #     root: vendors/PyPatchMatch
+
+# system:
+  # envs:
+    # abc: 1
+
+conda:
+  # env: rs

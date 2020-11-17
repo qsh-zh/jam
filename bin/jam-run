@@ -1,0 +1,10 @@
+#!/bin/bash -E
+
+JAMROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")"/../ && pwd)"
+
+source $JAMROOT/bin/_jam-init.sh $JAMROOT
+
+if [[ $1 == *.py ]]; then
+    exec python3 "$@" && exit
+fi
+exec "$@"
