@@ -1,0 +1,12 @@
+#!/bin/bash -E
+
+JAMROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../ && pwd )"
+CUR=`pwd`
+
+cd $JAMROOT
+echo "Updating jam"
+git pull --recurse-submodules
+echo "Updating Submodules"
+git submodule update --init --recursive
+cd $CUR
+

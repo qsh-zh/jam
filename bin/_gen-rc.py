@@ -6,7 +6,7 @@ import yaml
 from jammy.logging import get_logger
 
 # logger = get_logger(sys.stdout, colorize=True, format="<green>{time}</green> <level>{message}</level>")
-logger = get_logger(sys.stderr, colorize=True)
+logger = get_logger(sys.stderr, colorize=True, level="INFO")
 
 
 def load_system_settings(root, config, bash_file):
