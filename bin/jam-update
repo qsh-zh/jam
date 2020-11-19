@@ -1,12 +1,18 @@
 #!/bin/bash -E
 
-JAMROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../ && pwd )"
-CUR=`pwd`
+JAMROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")"/../ && pwd)"
+CUR=$(pwd)
 
 cd $JAMROOT
 echo "Updating jam"
 git pull --recurse-submodules
 echo "Updating Submodules"
 git submodule update --init --recursive
-cd $CUR
 
+if [ -d "$HOME/dotfile" ]; then
+    cd "$HOME/dotfile"
+    echo "Updating dotfile"
+    git pull --recurse-submodules
+fi
+
+cd $CUR
