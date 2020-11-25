@@ -28,7 +28,7 @@ __all__ = [
     'safe_dump',
     'compress', 'compress_zip',
     'extract', 'extract',
-    'link', 'mkdir', 'lsdir', 'remove', 'locate_newest_file',
+    'link', 'mkdir', 'lsdir', 'remove', 'locate_newest_file','copy',
     'io_function_registry'
 ]
 
@@ -298,6 +298,16 @@ def remove(file):
             shutil.rmtree(file, ignore_errors=True)
         if osp.isfile(file):
             os.remove(file)
+
+def copy(src, dst):
+    if osp.exists(src):
+        if osp.isdir(src):
+            _copy = shutil.copytree
+        if osp.isfile(src):
+            _copy = shutil.copyfile
+
+        _copy(src, dst)
+
 
 
 def locate_newest_file(dirname, pattern):
