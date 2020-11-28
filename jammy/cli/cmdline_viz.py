@@ -17,20 +17,32 @@ class CmdLineViz:
         if len(self.meter) == 0:
             return
         
-        tqdm.write("\t"*3 + "=== Summary ===")
+        _str ="\t"*3 + "=== Summary ===\n"
+        keys = []
+        color_write = {}
         for mode, meters in self.meter.items():
             avg = meters.avg
+            color_write[mode] = defaultdict(lambda: " "*10)
+            keys.extend(list(avg.keys()))
             for key,value in avg.items():
                 color = COLORS.White
                 if mode+key in self.prev_mean:
                     color = COLORS.Green if value > self.prev_mean[mode+key] \
                         else COLORS.Red
+                color_write[mode][key] = f"{color}{value:10.4f}{COLORS.END_NO_TOKEN}"
                 self.prev_mean[mode+key] = value
-                _str =f"\t{color}{mode:7} -- {key:20} -- {value:4f}{COLORS.END_NO_TOKEN}"
-                tqdm.write(_str)
 
-        tqdm.write(" ")
-        tqdm.write(" ")
+        keys = set(keys)
+        _str += f"\t{'mode':<10}"
+        for cur_key in self.meter:
+            _str += f" -- {cur_key:>10}"
+        _str += '\n'
+        for cur_key in keys:
+                _str +=f"\t{cur_key:10}"
+                for _, writer in color_write.items():
+                    _str += f" -- {writer[cur_key]}"
+                _str +=f"\n"
+        tqdm.write(_str)
 
         self.meter = defaultdict(GroupMeters)
 
