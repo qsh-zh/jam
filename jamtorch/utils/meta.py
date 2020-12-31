@@ -87,8 +87,6 @@ def as_cuda(obj):
 
 
 def _as_detached(o, clone=False):
-    # from torch.autograd import Variable
-    # if isinstance(o, Variable) or torch.is_tensor(o):
     if torch.is_tensor(o):
         if clone:
             return o.clone().detach()
