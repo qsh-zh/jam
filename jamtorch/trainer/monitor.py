@@ -13,6 +13,7 @@ from jamtorch.utils.meta import as_float
 from jamtorch.utils.grad import no_grad_func
 
 __all__ = [
+    'group_prefix',
     'binary_classification_accuracy',
     'classification_accuracy',
     'regression_accuracy',
@@ -21,6 +22,9 @@ __all__ = [
     'monitor_param_gradrms', 'monitor_param_gradrms_ratio'
 ]
 
+
+def group_prefix(mode, monitor):
+    return {f"{mode}/{k}": v for k, v in monitor.items()}
 
 @no_grad_func
 def binary_classification_accuracy(pred, label, name='', saturation=True):
