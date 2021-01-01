@@ -50,7 +50,7 @@ GPU wrappers
 """
 
 _use_gpu = False
-device = None
+device = torch.device("cpu")
 _gpu_id = 0
 
 
