@@ -33,7 +33,7 @@ class Trainer:
     ):
         (
             self.model,
-            self._optimizer,
+            self.optimizer,
             self.loss_fn,
             self.lr_scheduler,
             self.bnm_scheduler,
@@ -57,6 +57,8 @@ class Trainer:
         )
         self.cmdviz = CmdLineViz()
         self.trainer_monitor = None
+        self.iter_cnt = 0
+        self.epoch_cnt = 0
 
         # FIXME!
         self.eval_frequency = -1
@@ -69,7 +71,7 @@ class Trainer:
         self.trainer_monitor = TrainerMonitor(is_wandb, tblogger)
 
     def load_ckpt(self, filename="checkpoint"):
-        return load_checkpoint(self.model, self._optimizer, filename)
+        return load_checkpoint(self.model, self.optimizer, filename)
 
     def eval_epoch(self, data_loader, epoch, **kwargs):
         self.model.eval()
@@ -99,7 +101,7 @@ class Trainer:
 
     def train_step(self, feed_dict, measure_time=False, grad_clip=0):
         if hasattr(self.model, "train_step"):
-            return self.model.train_step(self._optimizer, feed_dict)
+            return self.model.train_step(self.optimizer, feed_dict)
 
         metrics = dict()
         self.trigger_event("step:before", self)
@@ -122,7 +124,7 @@ class Trainer:
             metrics["time/loss"] = cuda_time() - end_time
             end_time = cuda_time(False)
 
-        self._optimizer.zero_grad()
+        self.optimizer.zero_grad()
         self.trigger_event(
             "backward:before", self, feed_dict, loss, monitors, cmdviz_dict
         )
@@ -141,7 +143,7 @@ class Trainer:
             "backward:after", self, feed_dict, loss, monitors, cmdviz_dict
         )
         if loss.requires_grad:
-            self._optimizer.step()
+            self.optimizer.step()
 
         if measure_time:
             metrics["time/optimize"] = cuda_time() - end_time
@@ -184,35 +186,41 @@ class Trainer:
             self.eval_frequency if self.eval_frequency > 0 else len(train_loader)
         )
 
-        it = start_it
+        self.iter_cnt = start_it
         with tqdm.trange(
             start_epoch, n_epochs, desc="epochs", dynamic_ncols=True
         ) as tbar, tqdm.tqdm(
             total=eval_frequency, leave=False, desc="train", dynamic_ncols=True
         ) as pbar:
             self.trigger_event("epoch:start", self)
-            for epoch in tbar:
+            for self.epoch_cnt in tbar:
                 self.trigger_event("epoch:before", self)
                 for batch in train_loader:
                     loss, monitor = self.train_step(batch)
-                    it += 1
+                    self.iter_cnt += 1
 
                     pbar.update()
-                    pbar.set_postfix(dict(total_it=it, loss=loss))
+                    pbar.set_postfix(dict(total_it=self.iter_cnt, loss=loss))
                     tbar.refresh()
 
-                    if (it % eval_frequency) == 0:
+                    if (self.iter_cnt % eval_frequency) == 0:
                         pbar.close()
 
                         if test_loader is not None:
-                            val_loss, eval_monitor = self.eval_epoch(test_loader, epoch)
+                            val_loss, eval_monitor = self.eval_epoch(
+                                test_loader, self.epoch_cnt
+                            )
                             monitor.update(eval_monitor)
                             if self.checkpoint_dir is not None:
                                 is_best = val_loss < best_loss
                                 best_loss = min(val_loss, best_loss)
 
                                 state = checkpoint_state(
-                                    self.model, self._optimizer, val_loss, epoch, it
+                                    self.model,
+                                    self.optimizer,
+                                    val_loss,
+                                    self.epoch_cnt,
+                                    self.iter_cnt,
                                 )
 
                                 save_checkpoint(
@@ -222,13 +230,13 @@ class Trainer:
                                 )
                     if self.trainer_monitor:
                         self.trainer_monitor.update(
-                            {**monitor, "epoch": epoch, "it": it}
+                            {**monitor, "epoch": self.epoch_cnt, "it": self.iter_cnt}
                         )
 
                 pbar = tqdm.tqdm(
                     total=eval_frequency, leave=False, desc="train", dynamic_ncols=True
                 )
-                pbar.set_postfix(dict(total_it=it))
-                self.trigger_event("epoch:after", self, epoch)
+                pbar.set_postfix(dict(total_it=self.iter_cnt))
+                self.trigger_event("epoch:after", self)
             self.trigger_event("epoch:finish", self)
         return best_loss

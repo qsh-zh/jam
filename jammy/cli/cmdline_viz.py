@@ -18,7 +18,7 @@ class CmdLineViz:
         if len(self.meter) == 0:
             return
 
-        _str = "\t" * 3 + "=== Summary ===\n"
+        _str = "\n" + "\t" * 1 + "=== Summary ===\n"
         keys = []
         color_write = {}
         for mode, meters in self.meter.items():
@@ -46,7 +46,7 @@ class CmdLineViz:
             for _, writer in color_write.items():
                 _str += f" -- {writer[cur_key]}"
             _str += f"\n"
-        tqdm.write(_str)
+        tqdm.write(_str + "\n")
 
         self.meter = defaultdict(GroupMeters)
 

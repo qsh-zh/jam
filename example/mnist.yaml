@@ -1,0 +1,11 @@
+wandb:
+  log: True
+  project: "jammy"
+  name: "mnist"
+  tags:
+    - "jamtorch"
+    - "trainer"
+  notes:
+    "this is an simple setup experiment to test the flexible trainer"
+  entity: "qinsheng"
+

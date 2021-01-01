@@ -7,6 +7,12 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
 from jamtorch.trainer import Trainer
+from jammy.logging import Wandb
+
+# from jamtorch.meta import as_float
+from omegaconf import OmegaConf
+
+cfg = OmegaConf.load("mnist.yaml")
 
 
 class Net(nn.Module):
@@ -35,36 +41,36 @@ class Net(nn.Module):
         return output
 
 
-# fmt: off
-from IPython import embed; embed()
-# fmt: on
-
-
+# TODO: should consider process after eval
 def build_loss(device):
     def loss_fn(model, feed_dict, is_train, device=device):
         data, target = feed_dict
         data, target = data.to(device), target.to(device)
+        output = model(data)
+        loss = F.nll_loss(output, target)
         if is_train:
-            output = model(data)
-            loss = F.nll_loss(output, target)
-            return loss, {"loss": loss}, {"loss": loss}
+            return loss, {}, {}
 
-        with torch.no_grad():
-            output = model(data)
-            loss = F.nll_loss(output, target, reduction="sum").item()
-            pred = output.argmax(dim=1, keepdim=True)
-            correct = pred.eq(target.view_as(pred)).sum()
-        return (
-            loss,
-            {"loss": loss, "correct": correct},
-            {"loss": loss, "correct": correct},
-        )
+        pred = output.argmax(dim=1, keepdim=True)
+        correct = 1.0 * pred.eq(target.view_as(pred)).sum() / len(pred)
+        # fmf: off
+        # from IPython import embed; embed()
+        # fmf: on
+        return loss, {}, {"correct": correct}
 
     return loss_fn
 
 
 def epoch_after(trainer):
     trainer.lr_scheduler.step()
+    if trainer.trainer_monitor:
+        trainer.trainer_monitor.update(
+            {
+                "lr": trainer.optimizer.param_groups[0]["lr"],
+                "epoch": trainer.epoch_cnt,
+                "it": trainer.iter_cnt,
+            }
+        )
 
 
 def train(args, model, device, train_loader, optimizer, epoch):
@@ -164,6 +170,9 @@ def main():
         help="quickly check a single pass",
     )
     parser.add_argument(
+        "--debug", action="store_true", default=False, help="debug mode, no uploading"
+    )
+    parser.add_argument(
         "--seed", type=int, default=1, metavar="S", help="random seed (default: 1)"
     )
     parser.add_argument(
@@ -180,6 +189,7 @@ def main():
         help="For Saving the current Model",
     )
     args = parser.parse_args()
+    Wandb.launch(cfg, not args.debug)
     use_cuda = not args.no_cuda and torch.cuda.is_available()
 
     torch.manual_seed(args.seed)
@@ -214,7 +224,9 @@ def main():
     #     torch.save(model.state_dict(), "mnist_cnn.pt")
 
     trainer = Trainer(model, optimizer, build_loss(device), scheduler)
-    trainer.train(0, 0, args.epochs, train_loader, test_loader)
+    trainer.set_monitor(not args.debug)
+    trainer.register_event("epoch:after", epoch_after)
+    trainer.train(args.epochs, train_loader, test_loader)
 
 
 if __name__ == "__main__":
