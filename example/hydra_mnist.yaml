@@ -1,0 +1,23 @@
+
+batch_size: 64
+test_batch_size: 1000
+epochs: 14
+lr: 1.0
+gamma: 0.7
+no_cuda: False
+dry_run: False
+debug: False
+seed: 1
+log_interval: 10
+save_model: False
+
+wandb:
+  log: True
+  project: "jammy"
+  name: "hydra_mnist"
+  tags:
+    _ "jamtorch"
+    _ "trainer"
+  notes:
+    "this is an simple setup experiment to test the flexible trainer"
+  entity: "qinsheng"
