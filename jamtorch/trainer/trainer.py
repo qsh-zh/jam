@@ -201,7 +201,6 @@ class Trainer:
 
                     pbar.update()
                     pbar.set_postfix(dict(total_it=self.iter_cnt, loss=loss))
-                    tbar.refresh()
 
                     if (self.iter_cnt % eval_frequency) == 0:
                         pbar.close()
