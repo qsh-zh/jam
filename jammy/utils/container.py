@@ -13,7 +13,7 @@ import collections
 
 from .printing import kvformat, kvprint
 
-__all__ = ['G', 'g', 'GView', 'SlotAttrObject', 'OrderedSet']
+__all__ = ["G", "g", "GView", "SlotAttrObject", "OrderedSet"]
 
 
 class G(dict):
@@ -28,10 +28,10 @@ class G(dict):
     def __delattr__(self, k):
         del self[k]
 
-    def format(self, sep=': ', end='\n'):
+    def format(self, sep=": ", end="\n"):
         return kvformat(self, sep=sep, end=end)
 
-    def print(self, sep=': ', end='\n', file=None):
+    def print(self, sep=": ", end="\n", file=None):
         return kvprint(self, sep=sep, end=end, file=file)
 
 
@@ -42,7 +42,7 @@ class GView(object):
     def __init__(self, dict_=None):
         if dict_ is None:
             dict_ = dict()
-        object.__setattr__(self, '_dict', dict_)
+        object.__setattr__(self, "_dict", dict_)
 
     def __getattr__(self, k):
         if k not in self.raw():
@@ -71,7 +71,7 @@ class GView(object):
         return iter(self.raw().items())
 
     def raw(self):
-        return object.__getattribute__(self, '_dict')
+        return object.__getattribute__(self, "_dict")
 
     def update(self, other):
         self.raw().update(other)
@@ -79,10 +79,10 @@ class GView(object):
     def copy(self):
         return GView(self.raw().copy())
 
-    def format(self, sep=': ', end='\n'):
+    def format(self, sep=": ", end="\n"):
         return kvformat(self.raw(), sep=sep, end=end)
 
-    def print(self, sep=': ', end='\n', file=None):
+    def print(self, sep=": ", end="\n", file=None):
         return kvprint(self.raw(), sep=sep, end=end, file=file)
 
 
@@ -96,13 +96,13 @@ class SlotAttrObject(object):
             setattr(self, k, v)
 
     def __setattr__(self, k, v):
-        assert not k.startswith('_')
+        assert not k.startswith("_")
         if k not in type(self).__dict__:
             # do not use hasattr; since it may result in infinite recursion
             raise AttributeError(
-                '{}: could not set non-existing attribute {}'.format(
-                    self, k))
-        cvt = getattr(type(self), '_convert_{}'.format(k), None)
+                "{}: could not set non-existing attribute {}".format(self, k)
+            )
+        cvt = getattr(type(self), "_convert_{}".format(k), None)
         if cvt is not None:
             v = cvt(v)
         super().__setattr__(k, v)
@@ -132,4 +132,3 @@ class OrderedSet(object):
 
     def as_list(self):
         return list(self._dict.keys())
-

@@ -15,7 +15,7 @@ from .naming import func_name
 
 logger = get_logger(__file__)
 
-__all__ = ['deprecated']
+__all__ = ["deprecated"]
 
 
 def deprecated(func):
@@ -25,7 +25,8 @@ def deprecated(func):
             deprecated.logged.add(func)
             logger.warning(func.__doc__)
         return func(*args, **kwargs)
+
     return new_func
 
-deprecated.logged = set()
 
+deprecated.logged = set()

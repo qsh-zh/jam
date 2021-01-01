@@ -12,11 +12,17 @@ import threading
 
 from .context import EmptyContext
 
-__all__ = ['Registry', 'DefaultRegistry', 'RegistryGroup', 'CallbackRegistry', 'LockRegistry']
+__all__ = [
+    "Registry",
+    "DefaultRegistry",
+    "RegistryGroup",
+    "CallbackRegistry",
+    "LockRegistry",
+]
 
 
 class Registry(object):
-    __FALLBACK_KEY__ = '__fallback__'
+    __FALLBACK_KEY__ = "__fallback__"
 
     _registry = None
 
@@ -90,7 +96,9 @@ class RegistryGroup(object):
         return self._registries[registry_name].register(entry, value, **kwargs)
 
     def lookup(self, registry_name, entry, fallback=True, default=None):
-        return self._registries[registry_name].lookup(entry, fallback=fallback, default=default)
+        return self._registries[registry_name].lookup(
+            entry, fallback=fallback, default=default
+        )
 
 
 class CallbackRegistry(Registry):
@@ -112,6 +120,7 @@ class CallbackRegistry(Registry):
     >>> registry.register('name', callback_func)  # register a callback.
     >>> registry.dispatch('name', 'arg1', 'arg2', kwarg1='kwarg1')  # dispatch.
     """
+
     def __init__(self):
         super().__init__()
         self._super_callback = None

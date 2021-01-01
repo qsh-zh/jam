@@ -2,6 +2,7 @@ import numpy as np
 import torch
 from torch import nn
 
+
 class BaseModule(nn.Module):
     """ Base module class with some basic additions to the pytorch Module class
     """
@@ -16,9 +17,9 @@ class BaseModule(nn.Module):
         return self._nb_params
 
 
-class FastBatchNorm1d(nn.BatchNorm1d,BaseModule):
+class FastBatchNorm1d(nn.BatchNorm1d, BaseModule):
     def __init__(self, num_features, momentum=0.1):
-        super(nn.BatchNorm1d,self).__init__(num_features, momentum=momentum)
+        super(nn.BatchNorm1d, self).__init__(num_features, momentum=momentum)
 
     def _forward_dense(self, x):
         return super()(x)
@@ -41,6 +42,7 @@ class FastBatchNorm1d(nn.BatchNorm1d,BaseModule):
             return self._forward_dense(x)
         else:
             raise ValueError("Non supported number of dimensions {}".format(x.dim()))
+
 
 class _BNBase(nn.Sequential):
     def __init__(self, in_size, batch_norm=None, name=""):

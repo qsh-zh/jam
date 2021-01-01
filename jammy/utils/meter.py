@@ -19,6 +19,7 @@ from .meta import map_exec
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
+
     val = 0
     avg = 0
     sum = 0
@@ -89,21 +90,21 @@ class GroupMeters(object):
         log_str.extend(itertools.starmap(kv_format.format, sorted(meters_kv.items())))
         return glue.join(log_str)
 
-    def format_simple(self, caption, values='avg', compressed=True):
+    def format_simple(self, caption, values="avg", compressed=True):
         if compressed:
-            return self.format(caption, values, '{}={:4f}', ' ')
+            return self.format(caption, values, "{}={:4f}", " ")
         else:
-            return self.format(caption, values, '\t{} = {:4f}', '\n')
+            return self.format(caption, values, "\t{} = {:4f}", "\n")
 
-    def dump(self, filename, values='avg'):
+    def dump(self, filename, values="avg"):
         meters_kv = self._canonize_values(values)
-        with open(filename, 'a') as f:
+        with open(filename, "a") as f:
             f.write(io.dumps_json(meters_kv, compressed=False))
-            f.write('\n')
+            f.write("\n")
 
     def _canonize_values(self, values):
         if isinstance(values, six.string_types):
-            assert values in ('avg', 'val', 'sum')
+            assert values in ("avg", "val", "sum")
             meters_kv = getattr(self, values)
         else:
             meters_kv = values

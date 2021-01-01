@@ -11,7 +11,7 @@
 from .backend import cv2, opencv_only
 import numpy as np
 
-__all__ = ['jpeg_encode', 'png_encode', 'imdecode']
+__all__ = ["jpeg_encode", "png_encode", "imdecode"]
 
 
 @opencv_only
@@ -24,8 +24,9 @@ def jpeg_encode(img, quality=90):
 
     Returns bytes: encoded image data
     """
-    return cv2.imencode('.jpg', img,
-                        [int(cv2.IMWRITE_JPEG_QUALITY), quality])[1].tostring()
+    return cv2.imencode(".jpg", img, [int(cv2.IMWRITE_JPEG_QUALITY), quality])[
+        1
+    ].tostring()
 
 
 @opencv_only
@@ -42,8 +43,9 @@ def png_encode(input, compress_level=3):
     assert len(input.shape) == 3 and input.shape[2] in [3, 4]
     assert input.dtype == np.uint8
     assert isinstance(compress_level, int) and 0 <= compress_level <= 9
-    enc = cv2.imencode('.png', input,
-                       [int(cv2.IMWRITE_PNG_COMPRESSION), compress_level])
+    enc = cv2.imencode(
+        ".png", input, [int(cv2.IMWRITE_PNG_COMPRESSION), compress_level]
+    )
     return enc[1].tostring()
 
 
@@ -60,7 +62,7 @@ def imdecode(data, *, require_chl3=True, require_alpha=False):
     """
 
     img = cv2.imdecode(np.fromstring(data, np.uint8), cv2.IMREAD_UNCHANGED)
-    assert img is not None, 'failed to decode'
+    assert img is not None, "failed to decode"
     if img.ndim == 2 and require_chl3:
         img = img.reshape(img.shape + (1,))
     if img.shape[2] == 1 and require_chl3:

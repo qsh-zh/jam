@@ -16,18 +16,28 @@ import threading
 import contextlib
 
 __all__ = [
-    'gofor',
-    'run_once', 'try_run',
-    'map_exec', 'filter_exec', 'first_n', 'stmap',
-    'method2func', 'map_exec_method',
-    'decorator_with_optional_args',
-    'cond_with', 'cond_with_group',
-    'merge_iterable',
-    'dict_deep_update', 'dict_deep_kv', 'dict_deep_keys',
-    'assert_instance', 'assert_none', 'assert_notnone',
-    'notnone_property',
-    'synchronized',
-    'make_dummy_func'
+    "gofor",
+    "run_once",
+    "try_run",
+    "map_exec",
+    "filter_exec",
+    "first_n",
+    "stmap",
+    "method2func",
+    "map_exec_method",
+    "decorator_with_optional_args",
+    "cond_with",
+    "cond_with_group",
+    "merge_iterable",
+    "dict_deep_update",
+    "dict_deep_kv",
+    "dict_deep_keys",
+    "assert_instance",
+    "assert_none",
+    "assert_notnone",
+    "notnone_property",
+    "synchronized",
+    "make_dummy_func",
 ]
 
 
@@ -50,6 +60,7 @@ def run_once(func):
             return func(*args, **kwargs)
         else:
             return
+
     return new_func
 
 
@@ -111,14 +122,19 @@ def decorator_with_optional_args(func=None, *, is_method=False):
                 elif len(args) == 2:
                     return f(args[0], **kwargs)(args[1])
                 else:
-                    raise ValueError('Decorator supports 0 or 1 positional arguments as the function to be wrapped.')
+                    raise ValueError(
+                        "Decorator supports 0 or 1 positional arguments as the function to be wrapped."
+                    )
             else:
                 if len(args) == 0:
                     return f(**kwargs)
                 elif len(args) == 1:
                     return f(**kwargs)(args[0])
                 else:
-                    raise ValueError('Decorator supports 0 or 1 positional arguments as the function to be wrapped.')
+                    raise ValueError(
+                        "Decorator supports 0 or 1 positional arguments as the function to be wrapped."
+                    )
+
         return wrapped
 
     if func is not None:
@@ -163,7 +179,7 @@ def dict_deep_update(a, b):
             a[key] = b[key]
 
 
-def dict_deep_kv(d, sort=True, sep='.', allow_dict=False):
+def dict_deep_kv(d, sort=True, sep=".", allow_dict=False):
     # Not using collections.Sequence to avoid infinite recursion.
     assert isinstance(d, (tuple, list, collections.Mapping))
     result = list()
@@ -184,23 +200,23 @@ def dict_deep_kv(d, sort=True, sep='.', allow_dict=False):
     return result
 
 
-def dict_deep_keys(d, sort=True, sep='.', allow_dict=True):
+def dict_deep_keys(d, sort=True, sep=".", allow_dict=True):
     kv = dict_deep_kv(d, sort=sort, sep=sep, allow_dict=allow_dict)
     return [i[0] for i in kv]
 
 
 def assert_instance(ins, clz, msg=None):
-    msg = msg or '{} (of type{}) is not of type {}'.format(ins, type(ins), clz)
+    msg = msg or "{} (of type{}) is not of type {}".format(ins, type(ins), clz)
     assert isinstance(ins, clz), msg
 
 
 def assert_none(ins, msg=None):
-    msg = msg or '{} is not None'.format(ins)
+    msg = msg or "{} is not None".format(ins)
     assert ins is None, msg
 
 
-def assert_notnone(ins, msg=None, name='instance'):
-    msg = msg or '{} is None'.format(name)
+def assert_notnone(ins, msg=None, name="instance"):
+    msg = msg or "{} is None".format(name)
     assert ins is not None, msg
 
 
@@ -210,15 +226,15 @@ class notnone_property:
         self.__module__ = fget.__module__
         self.__name__ = fget.__name__
         self.__doc__ = fget.__doc__
-        self.__prop_key  = '{}_{}'.format(
-            fget.__name__, id(fget))
+        self.__prop_key = "{}_{}".format(fget.__name__, id(fget))
 
     def __get__(self, instance, owner):
         if instance is None:
             return self.fget
         v = self.fget(instance)
-        assert v is not None, '{}.{} can not be None, maybe not set yet'.format(
-                type(instance).__name__, self.__name__)
+        assert v is not None, "{}.{} can not be None, maybe not set yet".format(
+            type(instance).__name__, self.__name__
+        )
         return v
 
 
@@ -232,6 +248,7 @@ def synchronized(mutex=None):
         def wrapped_func(*args, **kwargs):
             with mutex:
                 return func(*args, **kwargs)
+
         wrapped_func.__sync_mutex__ = mutex
         return wrapped_func
 
@@ -241,5 +258,5 @@ def synchronized(mutex=None):
 def make_dummy_func(message=None):
     def func(*args, **kwargs):
         raise NotImplementedError(message)
-    return func
 
+    return func

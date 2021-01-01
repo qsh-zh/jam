@@ -4,7 +4,7 @@
 # Author : Jiayuan Mao
 # Email  : maojiayuan@gmail.com
 # Date   : 01/19/2018
-# 
+#
 # This file is part of Jacinle.
 # Distributed under terms of the MIT license.
 
@@ -27,9 +27,11 @@ except ImportError:
 
 if cv2 is None:
     if Image is not None:
-        logger.warning('Fail to import OpenCV; use PIL library.')
+        logger.warning("Fail to import OpenCV; use PIL library.")
     else:
-        logger.error('Can not find either PIL OpenCV; you can not use most function in tartist.image.')
+        logger.error(
+            "Can not find either PIL OpenCV; you can not use most function in tartist.image."
+        )
 
 
 FORCE_PIL_BGR = True
@@ -39,8 +41,9 @@ def opencv_or_pil(func):
     @functools.wraps(func)
     def new_func(*args, **kwargs):
         if cv2 is None and Image is None:
-            assert False, 'Call {} without OpenCV or PIL.'.format(func)
+            assert False, "Call {} without OpenCV or PIL.".format(func)
         return func(*args, **kwargs)
+
     return new_func
 
 
@@ -48,8 +51,9 @@ def opencv_only(func):
     @functools.wraps(func)
     def new_func(*args, **kwargs):
         if cv2 is None:
-            assert False, 'Call {} without OpenCV.'.format(func)
+            assert False, "Call {} without OpenCV.".format(func)
         return func(*args, **kwargs)
+
     return new_func
 
 
@@ -57,8 +61,9 @@ def pil_only(func):
     @functools.wraps(func)
     def new_func(*args, **kwargs):
         if Image is None:
-            assert False, 'Call {} without PIL.'.format(func)
+            assert False, "Call {} without PIL.".format(func)
         return func(*args, **kwargs)
+
     return new_func
 
 
@@ -109,21 +114,21 @@ def imshow(title, image):
 
 
 @opencv_or_pil
-def resize(image, dsize, interpolation='LINEAR'):
-    assert interpolation in ('NEAREST', 'LINEAR', 'CUBIC', 'LANCZOS4')
+def resize(image, dsize, interpolation="LINEAR"):
+    assert interpolation in ("NEAREST", "LINEAR", "CUBIC", "LANCZOS4")
 
     dsize = tuple(map(int, dsize))
     assert len(dsize) == 2
     if cv2:
-        interpolation = getattr(cv2, 'INTER_' + interpolation)
+        interpolation = getattr(cv2, "INTER_" + interpolation)
         return cv2.resize(image, dsize, interpolation=interpolation)
     else:
-        if interpolation == 'NEAREST':
+        if interpolation == "NEAREST":
             interpolation = Image.NEAREST
-        elif interpolation == 'LANCZOS4':
+        elif interpolation == "LANCZOS4":
             interpolation = Image.LANCZOS
         else:
-            interpolation = getattr(Image, 'BI' + interpolation)
+            interpolation = getattr(Image, "BI" + interpolation)
 
         image = pil_nd2img(image)
         image = image.resize(dsize, resample=interpolation)

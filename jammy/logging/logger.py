@@ -7,6 +7,7 @@ logger.remove()
 
 logger_sink = []
 
+
 def get_logger(file_name=None, **kwargs):
     if file_name is None:
         file_name = sys.stderr
@@ -15,6 +16,6 @@ def get_logger(file_name=None, **kwargs):
     if file_name in logger_sink:
         logger.debug(f"{file_name} already registered")
     else:
-        logger.add(file_name,**kwargs)
+        logger.add(file_name, **kwargs)
         logger_sink.append(file_name)
     return logger

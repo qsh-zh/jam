@@ -226,10 +226,7 @@ class Trainer:
                         )
 
                 pbar = tqdm.tqdm(
-                    total=eval_frequency,
-                    leave=False,
-                    desc="train",
-                    dynamic_ncols=True,
+                    total=eval_frequency, leave=False, desc="train", dynamic_ncols=True
                 )
                 pbar.set_postfix(dict(total_it=it))
                 self.trigger_event("epoch:after", self, epoch)

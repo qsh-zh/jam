@@ -19,55 +19,58 @@ from jammy.utils.enum import JamEnum
 from . import backend
 
 __all__ = [
-    'resize', 'resize_wh', 'resize_scale', 'resize_scale_wh', 'resize_minmax',
-    'crop', 'center_crop', 'leftup_crop',
-    'dimshuffle',
-    'clip', 'clip_decorator',
-    'grayscale',
-    'brightness', 'contrast', 'saturation'
+    "resize",
+    "resize_wh",
+    "resize_scale",
+    "resize_scale_wh",
+    "resize_minmax",
+    "crop",
+    "center_crop",
+    "leftup_crop",
+    "dimshuffle",
+    "clip",
+    "clip_decorator",
+    "grayscale",
+    "brightness",
+    "contrast",
+    "saturation",
 ]
 
 
 def _get_crop2d_rest(img, target_shape):
     source_shape = img.shape[:2]
     target_shape = get_2dshape(target_shape)
-    rest_shape = source_shape[0] - \
-        target_shape[0], source_shape[1] - target_shape[1]
+    rest_shape = source_shape[0] - target_shape[0], source_shape[1] - target_shape[1]
     assert rest_shape[0] >= 0 and rest_shape[1] >= 0
     return rest_shape
 
 
 def _crop2d(img, start, size):
-    return img[start[0]:start[0] + size[0], start[1]:start[1] + size[1]]
+    return img[start[0] : start[0] + size[0], start[1] : start[1] + size[1]]
 
 
-def resize(img, size, interpolation='LINEAR'):
+def resize(img, size, interpolation="LINEAR"):
     size = get_2dshape(size)
     return backend.resize(img, (size[1], size[0]), interpolation=interpolation)
 
 
-def resize_wh(img, size_wh, interpolation='LINEAR'):
+def resize_wh(img, size_wh, interpolation="LINEAR"):
     size_wh = get_2dshape(size_wh)
     return backend.resize(img, size_wh, interpolation=interpolation)
 
 
-def resize_scale(img, scale, interpolation='LINEAR'):
+def resize_scale(img, scale, interpolation="LINEAR"):
     scale = get_2dshape(scale, type=float)
-    new_size = math.ceil(img.shape[0] * scale[0]
-                         ), math.ceil(img.shape[1] * scale[1])
+    new_size = math.ceil(img.shape[0] * scale[0]), math.ceil(img.shape[1] * scale[1])
     return resize(img, new_size, interpolation=interpolation)
 
 
-def resize_scale_wh(img, scale_wh, interpolation='LINEAR'):
+def resize_scale_wh(img, scale_wh, interpolation="LINEAR"):
     scale_wh = get_2dshape(scale_wh, type=float)
-    return resize_scale(
-        img,
-        (scale_wh[1],
-         scale_wh[0]),
-        interpolation=interpolation)
+    return resize_scale(img, (scale_wh[1], scale_wh[0]), interpolation=interpolation)
 
 
-def resize_minmax(img, min_dim, max_dim=None, interpolation='LINEAR'):
+def resize_minmax(img, min_dim, max_dim=None, interpolation="LINEAR"):
     if max_dim is None:
         max_dim = min_dim
     min_dim, max_dim = min(min_dim, max_dim), max(min_dim, max_dim)
@@ -107,8 +110,9 @@ def crop(image, l, t, w, h, extra_crop=None):
         ex_h = im_h - ex_t
 
     result = np.zeros(shape=(h, w) + image.shape[2:], dtype=image.dtype)
-    result[delta_t:delta_t + ex_h, delta_l:delta_l +
-           ex_w] = image[ex_t:ex_t + ex_h, ex_l:ex_l + ex_w]
+    result[delta_t : delta_t + ex_h, delta_l : delta_l + ex_w] = image[
+        ex_t : ex_t + ex_h, ex_l : ex_l + ex_w
+    ]
     return result
 
 
@@ -130,13 +134,13 @@ def leftup_crop(img, target_shape):
 
 
 class ShuffleType(JamEnum):
-    CHANNEL_FIRST = 'channel_first'
-    CHANNEL_LAST = 'channel_last'
+    CHANNEL_FIRST = "channel_first"
+    CHANNEL_LAST = "channel_last"
 
 
 def dimshuffle(img, shuffle_type):
     shuffle_type = ShuffleType.from_string(shuffle_type)
-    assert len(img.shape) in (2, 3, 4), 'Image should be of dims 2, 3 or 4'
+    assert len(img.shape) in (2, 3, 4), "Image should be of dims 2, 3 or 4"
 
     if len(img.shape) == 2:
         return img

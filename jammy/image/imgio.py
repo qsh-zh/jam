@@ -15,7 +15,7 @@ from . import backend
 from .imgproc import dimshuffle
 
 
-__all__ = ['imread', 'imwrite', 'imshow']
+__all__ = ["imread", "imwrite", "imshow"]
 
 
 def imread(path, *, shuffle=False):
@@ -25,17 +25,17 @@ def imread(path, *, shuffle=False):
     if i is None:
         return None
     if shuffle:
-        return dimshuffle(i, 'channel_first')
+        return dimshuffle(i, "channel_first")
     return i
 
 
 def imwrite(path, img, *, shuffle=False):
     if shuffle:
-        img = dimshuffle(img, 'channel_last')
+        img = dimshuffle(img, "channel_last")
     backend.imwrite(path, img)
 
 
 def imshow(title, img, *, shuffle=False):
     if shuffle:
-        img = dimshuffle(img, 'channel_last')
+        img = dimshuffle(img, "channel_last")
     backend.imshow(title, img)

@@ -3,14 +3,11 @@ import torch.nn as nn
 
 __all__ = ["MLP"]
 
+
 class MLP(nn.Module):
     def __init__(
-            self,
-            input_size,
-            n_hidden,
-            hidden_size,
-            output_size,
-            is_batchnorm=False):
+        self, input_size, n_hidden, hidden_size, output_size, is_batchnorm=False
+    ):
         super().__init__()
         layers = []
         for _ in range(n_hidden):
@@ -24,4 +21,3 @@ class MLP(nn.Module):
 
     def forward(self, x):
         return self.layers(x)
-

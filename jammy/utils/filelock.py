@@ -74,8 +74,12 @@ except NameError:
 # Data
 # ------------------------------------------------
 __all__ = [
-    "Timeout", "BaseFileLock", "WindowsFileLock", "UnixFileLock",
-    "SoftFileLock", "FileLock"
+    "Timeout",
+    "BaseFileLock",
+    "WindowsFileLock",
+    "UnixFileLock",
+    "SoftFileLock",
+    "FileLock",
 ]
 
 __version__ = "2.0.8"
@@ -99,8 +103,7 @@ class Timeout(TimeoutError):
         return None
 
     def __str__(self):
-        temp = "The file lock '{}' could not be acquired."\
-               .format(self.lock_file)
+        temp = "The file lock '{}' could not be acquired.".format(self.lock_file)
         return temp
 
 
@@ -249,26 +252,26 @@ class BaseFileLock(object):
                 with self._thread_lock:
                     if not self.is_locked:
                         logger.debug(
-                            'Attempting to acquire lock %s on %s', lock_id,
-                            lock_filename
+                            "Attempting to acquire lock %s on %s",
+                            lock_id,
+                            lock_filename,
                         )
                         self._acquire()
 
                 if self.is_locked:
-                    logger.info(
-                        'Lock %s acquired on %s', lock_id, lock_filename
-                    )
+                    logger.info("Lock %s acquired on %s", lock_id, lock_filename)
                     break
                 elif timeout >= 0 and time.time() - start_time > timeout:
                     logger.debug(
-                        'Timeout on aquiring lock %s on %s', lock_id,
-                        lock_filename
+                        "Timeout on aquiring lock %s on %s", lock_id, lock_filename
                     )
                     raise Timeout(self._lock_file)
                 else:
                     logger.debug(
-                        'Lock %s not acquired on %s, waiting %s seconds ...',
-                        lock_id, lock_filename, poll_intervall
+                        "Lock %s not acquired on %s, waiting %s seconds ...",
+                        lock_id,
+                        lock_filename,
+                        poll_intervall,
                     )
                     time.sleep(poll_intervall)
         except:
@@ -320,14 +323,11 @@ class BaseFileLock(object):
                     lock_filename = self._lock_file
 
                     logger.debug(
-                        'Attempting to release lock %s on %s', lock_id,
-                        lock_filename
+                        "Attempting to release lock %s on %s", lock_id, lock_filename
                     )
                     self._release()
                     self._lock_counter = 0
-                    logger.info(
-                        'Lock %s released on %s', lock_id, lock_filename
-                    )
+                    logger.info("Lock %s released on %s", lock_id, lock_filename)
 
         return None
 
@@ -462,4 +462,3 @@ else:
 
     if warnings is not None:
         warnings.warn("only soft file lock is available")
-

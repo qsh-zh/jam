@@ -1,7 +1,7 @@
 import six
 import enum
 
-__all__ = ['JamEnum']
+__all__ = ["JamEnum"]
 
 
 class JamEnum(enum.Enum):
@@ -21,7 +21,7 @@ class JamEnum(enum.Enum):
 
     @classmethod
     def choice_names(cls):
-        return list(filter(lambda x: not x.startswith('_'), dir(cls)))
+        return list(filter(lambda x: not x.startswith("_"), dir(cls)))
 
     @classmethod
     def choice_objs(cls):
@@ -39,7 +39,8 @@ class JamEnum(enum.Enum):
     @classmethod
     def assert_valid(cls, value):
         assert cls.is_valid(value), 'Invalid {}: "{}". Supported choices: {}.'.format(
-            cls.type_name(), value, ','.join(cls.choice_values()))
+            cls.type_name(), value, ",".join(cls.choice_values())
+        )
 
     def __jsonify__(self):
         return self.value
@@ -52,4 +53,3 @@ def _canonize_enum_value(value, cap=False):
         else:
             value = value.lower()
     return value
-

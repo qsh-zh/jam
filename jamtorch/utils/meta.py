@@ -18,11 +18,12 @@ from jammy.utils.meta import stmap
 
 SKIP_TYPES = six.string_types
 
-__all__ = ['as_tensor', 'as_numpy', 'as_float', 'as_cuda', 'as_cpu', 'as_detached']
+__all__ = ["as_tensor", "as_numpy", "as_float", "as_cuda", "as_cpu", "as_detached"]
 
 
 def _as_tensor(o):
     from torch.autograd import Variable
+
     if isinstance(o, SKIP_TYPES):
         return o
     if isinstance(o, Variable):
@@ -35,8 +36,10 @@ def _as_tensor(o):
 def as_tensor(obj):
     return stmap(_as_tensor, obj)
 
+
 def _as_numpy(o):
     from torch.autograd import Variable
+
     if isinstance(o, SKIP_TYPES):
         return o
     if isinstance(o, Variable):
@@ -66,6 +69,7 @@ def as_float(obj):
 
 def _as_cpu(o):
     from torch.autograd import Variable
+
     if isinstance(o, Variable) or torch.is_tensor(o):
         return o.cpu()
     return o
@@ -77,6 +81,7 @@ def as_cpu(obj):
 
 def _as_cuda(o):
     from torch.autograd import Variable
+
     if isinstance(o, Variable) or torch.is_tensor(o):
         return o.cuda()
     return o

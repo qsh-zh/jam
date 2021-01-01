@@ -7,7 +7,7 @@
 #
 # Distributed under terms of the MIT license.
 
-__all__ = ['EmptyContext']
+__all__ = ["EmptyContext"]
 
 
 class EmptyContext(object):

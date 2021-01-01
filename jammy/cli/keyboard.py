@@ -2,22 +2,22 @@ import os
 import sys
 import os.path as osp
 
-__all__ = ['str2bool', 'yn2bool', 'yes_or_no', 'maybe_mkdir']
+__all__ = ["str2bool", "yn2bool", "yes_or_no", "maybe_mkdir"]
 
 
 def str2bool(s):
-    if s.lower() in ('yes', 'true', 't', 'y', '1'):
+    if s.lower() in ("yes", "true", "t", "y", "1"):
         return True
-    elif s.lower() in ('no', 'false', 'f', 'n', '0'):
+    elif s.lower() in ("no", "false", "f", "n", "0"):
         return False
     else:
         raise ValueError('str2bool is undefined for: "{}".'.format(s))
 
 
 def yn2bool(s):
-    if s.lower() in ('yes', 'y'):
+    if s.lower() in ("yes", "y"):
         return True
-    elif s.lower() in ('no', 'n'):
+    elif s.lower() in ("no", "n"):
         return False
     else:
         raise ValueError('yn2bool is undefined for: "{}".'.format(s))
@@ -33,17 +33,26 @@ def yes_or_no(question, default="yes"):
     """
 
     valid = {
-            "yes": True, "y": True, "ye": True,
-            "no": False, "n": False,
-            "default": None, "def": None, "d": None
+        "yes": True,
+        "y": True,
+        "ye": True,
+        "no": False,
+        "n": False,
+        "default": None,
+        "def": None,
+        "d": None,
     }
 
-    quiet = os.getenv('JAM_QUIET', '')
-    if quiet != '':
+    quiet = os.getenv("JAM_QUIET", "")
+    if quiet != "":
         quiet = quiet.lower()
-        assert quiet in valid, 'Invalid JAM_QUIET environ: {}.'.format(quiet)
+        assert quiet in valid, "Invalid JAM_QUIET environ: {}.".format(quiet)
         choice = valid[quiet]
-        sys.stdout.write('Jam Quiet run:\n\tQuestion: {}\n\tChoice: {}\n'.format(question, 'Default' if choice is None else 'Yes' if choice else 'No'))
+        sys.stdout.write(
+            "Jam Quiet run:\n\tQuestion: {}\n\tChoice: {}\n".format(
+                question, "Default" if choice is None else "Yes" if choice else "No"
+            )
+        )
         return choice if choice is not None else default
 
     if default is None:
@@ -58,13 +67,12 @@ def yes_or_no(question, default="yes"):
     while True:
         sys.stdout.write(question + prompt)
         choice = input().lower()
-        if default is not None and choice == '':
+        if default is not None and choice == "":
             return valid[default]
         elif choice in valid:
             return valid[choice]
         else:
-            sys.stdout.write("Please respond with 'yes' or 'no' "
-                             "(or 'y' or 'n').\n")
+            sys.stdout.write("Please respond with 'yes' or 'no' " "(or 'y' or 'n').\n")
 
 
 def maybe_mkdir(dirname):
@@ -74,6 +82,6 @@ def maybe_mkdir(dirname):
         return
 
     import jammy.io as io
+
     if yes_or_no('Creating directory "{}"?'.format(dirname)):
         io.mkdir(dirname)
-

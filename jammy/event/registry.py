@@ -14,9 +14,11 @@ import uuid
 from jammy.utils.registry import Registry, RegistryGroup
 
 __all__ = [
-    'SimpleEventRegistry',
-    'EventRegistry', 'EventRegistryGroup',
-    'register_event', 'trigger_event'
+    "SimpleEventRegistry",
+    "EventRegistry",
+    "EventRegistryGroup",
+    "register_event",
+    "trigger_event",
 ]
 
 
@@ -43,7 +45,7 @@ class EventRegistry(Registry):
     def _init_registry(self):
         self._registry = collections.defaultdict(  # entry
             lambda: collections.defaultdict(  # priority
-                collections.OrderedDict,  # sub-key
+                collections.OrderedDict  # sub-key
             )
         )
 

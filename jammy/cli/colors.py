@@ -78,4 +78,3 @@ class COLORS:
     On_IPurple = "\033[10;95m"  # Purple
     On_ICyan = "\033[0;106m"  # Cyan
     On_IWhite = "\033[0;107m"  # White
-

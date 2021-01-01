@@ -14,15 +14,20 @@ class WandbUrls:
 
         self.weight_url = url
         self.log_url = "https://app.wandb.ai/{}/{}/runs/{}/logs".format(
-            entity, project, hash)
+            entity, project, hash
+        )
         self.chart_url = "https://app.wandb.ai/{}/{}/runs/{}".format(
-            entity, project, hash)
+            entity, project, hash
+        )
         self.overview_url = "https://app.wandb.ai/{}/{}/runs/{}/overview".format(
-            entity, project, hash)
+            entity, project, hash
+        )
         self.hydra_config_url = "https://app.wandb.ai/{}/{}/runs/{}/files/hydra-config.yaml".format(
-            entity, project, hash)
+            entity, project, hash
+        )
         self.overrides_url = "https://app.wandb.ai/{}/{}/runs/{}/files/overrides.yaml".format(
-            entity, project, hash)
+            entity, project, hash
+        )
 
     def __repr__(self):
         msg = "=================================================== WANDB URLS ===================================================================\n"
@@ -47,7 +52,7 @@ class Wandb:
             wandb_args[name] = var
 
     @staticmethod
-    def launch(cfg, launch: bool, is_hydra: bool=False):
+    def launch(cfg, launch: bool, is_hydra: bool = False):
         if launch:
             import wandb
 
@@ -64,8 +69,11 @@ class Wandb:
             Wandb._set_to_wandb_args(wandb_args, cfg, "id")
 
             try:
-                commit_sha = subprocess.check_output(
-                    ["git", "rev-parse", "HEAD"]).decode("ascii").strip()
+                commit_sha = (
+                    subprocess.check_output(["git", "rev-parse", "HEAD"])
+                    .decode("ascii")
+                    .strip()
+                )
                 gitdiff = subprocess.check_output(["git", "diff"]).decode()
             except BaseException:
                 commit_sha = "n/a"
@@ -86,8 +94,9 @@ class Wandb:
 
             if is_hydra:
                 shutil.copyfile(
-                    os.path.join(os.getcwd(),".hydra/config.yaml"),
-                    os.path.join(os.getcwd(),".hydra/hydra-config.yaml"))
+                    os.path.join(os.getcwd(), ".hydra/config.yaml"),
+                    os.path.join(os.getcwd(), ".hydra/hydra-config.yaml"),
+                )
                 wandb.save(os.path.join(os.getcwd(), ".hydra/hydra-config.yaml"))
                 wandb.save(os.path.join(os.getcwd(), ".hydra/overrides.yaml"))
 

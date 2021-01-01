@@ -1,13 +1,14 @@
 import torch.nn as nn
 from .base_modules import (
-        BatchNorm1d,
-        BatchNorm2d,
-        BatchNorm3d,
-        Conv1d,
-        Conv2d,
-        Conv3d,
-        FC,
-        )
+    BatchNorm1d,
+    BatchNorm2d,
+    BatchNorm3d,
+    Conv1d,
+    Conv2d,
+    Conv3d,
+    FC,
+)
+
 
 class Seq(nn.Sequential):
     def __init__(self, input_channels):
@@ -189,4 +190,3 @@ class Seq(nn.Sequential):
         self.count += 1
 
         return self
-

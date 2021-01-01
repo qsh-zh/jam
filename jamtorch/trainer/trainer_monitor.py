@@ -29,7 +29,7 @@ class TrainerMonitor:
         if self.is_wandb:
             wandb.log(updates)
         if self.is_tblogger:
-            for k, v in record.items():
+            for k, v in updates.items():
                 self.counter[k].update(1, 1)
                 self._tb_logger.scalar_summary(k, v, self.counter[k].tot_count)
 

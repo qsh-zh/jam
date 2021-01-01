@@ -13,24 +13,26 @@ from jamtorch.utils.meta import as_float
 from jamtorch.utils.grad import no_grad_func
 
 __all__ = [
-    'group_prefix',
-    'binary_classification_accuracy',
-    'classification_accuracy',
-    'regression_accuracy',
-    'monitor_param_saturation',
-    'monitor_param_rms',
-    'monitor_param_gradrms', 'monitor_param_gradrms_ratio'
+    "group_prefix",
+    "binary_classification_accuracy",
+    "classification_accuracy",
+    "regression_accuracy",
+    "monitor_param_saturation",
+    "monitor_param_rms",
+    "monitor_param_gradrms",
+    "monitor_param_gradrms_ratio",
 ]
 
 
 def group_prefix(mode, monitor):
     return {f"{mode}/{k}": v for k, v in monitor.items()}
 
+
 @no_grad_func
-def binary_classification_accuracy(pred, label, name='', saturation=True):
-    if name != '':
-        name = '/' + name
-    prefix = 'accuracy' + name
+def binary_classification_accuracy(pred, label, name="", saturation=True):
+    if name != "":
+        name = "/" + name
+    prefix = "accuracy" + name
     pred = pred.view(-1)  # Binary accuracy
     label = label.view(-1)
     acc = label.float().eq((pred > 0.5).float())
@@ -38,17 +40,17 @@ def binary_classification_accuracy(pred, label, name='', saturation=True):
         sat = 1 - (pred - (pred > 0.5).float()).abs()
         return {
             prefix: as_float(acc.float().mean()),
-            prefix + '/saturation/mean': as_float(sat.mean()),
-            prefix + '/saturation/min': as_float(sat.min())
+            prefix + "/saturation/mean": as_float(sat.mean()),
+            prefix + "/saturation/min": as_float(sat.min()),
         }
     return {prefix: as_float(acc.float().mean())}
 
 
 @no_grad_func
-def classification_accuracy(pred, label, name=''):
-    if name != '':
-        name = '/' + name
-    prefix = 'accuracy' + name
+def classification_accuracy(pred, label, name=""):
+    if name != "":
+        name = "/" + name
+    prefix = "accuracy" + name
     pred = pred.view(-1)  # Binary accuracy
     label = label.view(-1)
     acc = label.float().eq((pred).float())
@@ -56,16 +58,16 @@ def classification_accuracy(pred, label, name=''):
 
 
 @no_grad_func
-def regression_accuracy(pred, label, name=''):
-    if name != '':
-        name = '/' + name
-    prefix = 'accuracy' + name
+def regression_accuracy(pred, label, name=""):
+    if name != "":
+        name = "/" + name
+    prefix = "accuracy" + name
     pred = pred.view(-1)  # Binary accuracy
     label = label.view(-1)
     diff = pred - label
     return {
-        prefix + '/l1': as_float(diff.abs().mean()),
-        prefix + '/l2': as_float(0.5 * diff.pow(2).mean())
+        prefix + "/l1": as_float(diff.abs().mean()),
+        prefix + "/l2": as_float(0.5 * diff.pow(2).mean()),
     }
 
 
@@ -79,7 +81,7 @@ def monitor_param_saturation(model):
     for name, p in model.named_parameters():
         p = F.sigmoid(p)
         sat = 1 - (p - (p > 0.5).float()).abs()
-        monitors['sat/' + name] = sat
+        monitors["sat/" + name] = sat
     return monitors
 
 
@@ -87,7 +89,7 @@ def monitor_param_saturation(model):
 def monitor_param_rms(model):
     monitors = {}
     for name, p in model.named_parameters():
-        monitors['param/rms/' + name] = _rms(p)
+        monitors["param/rms/" + name] = _rms(p)
     return monitors
 
 
@@ -96,7 +98,7 @@ def monitor_param_gradrms(model):
     monitors = {}
     for name, p in model.named_parameters():
         if p.grad is not None:
-            monitors['param/gradrms/' + name] = _rms(p.grad)
+            monitors["param/gradrms/" + name] = _rms(p.grad)
     return monitors
 
 
@@ -105,5 +107,5 @@ def monitor_param_gradrms_ratio(model):
     monitors = {}
     for name, p in model.named_parameters():
         if p.grad is not None:
-            monitors['param/gradrmsratio/' + name] = _rms(p.grad) / max(_rms(p), 1e-8)
+            monitors["param/gradrmsratio/" + name] = _rms(p.grad) / max(_rms(p), 1e-8)
     return monitors
