@@ -1,16 +1,19 @@
-from jammy.logging import get_logger
-import jammy.io as io
 import os.path as osp
+
 import torch
 import wandb
+import jammy.io as io
+from jammy.logging import get_logger
 
 __all__ = ["load_checkpoint", "save_checkpoint", "checkpoint_state"]
 
 logger = get_logger()
 
+
 def wandb_trainer_update(stage, record_dict, step_cnt):
-    book = {f"{stage}/{k}":v for k,v in record_dict.items()}
-    wandb.log(book, step = step_cnt)
+    book = {f"{stage}/{k}": v for k, v in record_dict.items()}
+    wandb.log(book, step=step_cnt)
+
 
 def load_checkpoint(model=None, optimizer=None, filename="checkpoint"):
     filename = "{}.pth.tar".format(filename)
@@ -31,13 +34,14 @@ def load_checkpoint(model=None, optimizer=None, filename="checkpoint"):
         logger.critical("==> Checkpoint '{}' not found".format(filename))
         return None
 
-def save_checkpoint(
-        state, is_best, filename="checkpoint", bestname="model_best"):
+
+def save_checkpoint(state, is_best, filename="checkpoint", bestname="model_best"):
     filename = "{}.pth.tar".format(filename)
     torch.save(state, filename)
     if is_best:
-        io.copy(filename,"{}.pth.tar".format(bestname))
+        io.copy(filename, "{}.pth.tar".format(bestname))
         logger.info("Save best up to now: {}".format(filename))
+
 
 def checkpoint_state(model=None, optimizer=None, metrics=None, epoch=None, it=None):
     optim_state = optimizer.state_dict() if optimizer is not None else None
