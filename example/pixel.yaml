@@ -1,0 +1,27 @@
+N_epoch: 200
+batch_size: 2048000
+lr: 0.0001
+sin_condition: True
+sin_order: 10
+is_batchnorm: True
+use_cuda: True
+loss: 'mse'
+
+trainer:
+  resume: False
+  ckpt: "/tmp/"
+
+
+wandb:
+  log: True
+  project: "jammy"
+  name: ""
+  tags:
+    - "jamtorch"
+    - "trainer"
+  notes:
+    "this is an simple setup experiment to test the flexible trainer"
+  entity: "qinsheng"
+
+tensorboard:
+  log: False
