@@ -167,7 +167,7 @@ def main():
 
     trainer = Trainer(model, optimizer, build_loss(device), scheduler)
     trainer.set_monitor(not args.debug)
-    trainer.register_event("epoch:after", epoch_after)
+    # trainer.register_event("epoch:after", epoch_after)
     trainer.train(args.epochs, train_loader, test_loader)
 
 

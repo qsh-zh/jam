@@ -229,13 +229,24 @@ class Trainer:
                                 )
                     if self.trainer_monitor:
                         self.trainer_monitor.update(
-                            {**monitor, "epoch": self.epoch_cnt, "it": self.iter_cnt}
+                            {**monitor, "epoch": self.epoch_cnt, "iter": self.iter_cnt}
                         )
 
                 pbar = tqdm.tqdm(
                     total=eval_frequency, leave=False, desc="train", dynamic_ncols=True
                 )
                 pbar.set_postfix(dict(total_it=self.iter_cnt))
+                if self.lr_scheduler:
+                    self.lr_scheduler.step()
+                    if self.trainer_monitor:
+                        self.trainer_monitor.update(
+                            {
+                                "lr": self.optimizer.param_groups[0]["lr"],
+                                "epoch": self.epoch_cnt,
+                                "iter": self.iter_cnt,
+                            }
+                        )
                 self.trigger_event("epoch:after", self)
+
             self.trigger_event("epoch:finish", self)
         return best_loss
