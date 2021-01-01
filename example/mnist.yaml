@@ -8,4 +8,3 @@ wandb:
   notes:
     "this is an simple setup experiment to test the flexible trainer"
   entity: "qinsheng"
-
