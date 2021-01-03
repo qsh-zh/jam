@@ -108,3 +108,9 @@ class Wandb:
 
         filename = os.path.basename(file_path)
         shutil.copyfile(file_path, os.path.join(wandb.run.dir, filename))
+    @staticmethod
+    def finish():
+        if not Wandb.IS_ACTIVE:
+            pass
+        import wandb
+        wandb.finish()
