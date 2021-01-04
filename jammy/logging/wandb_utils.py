@@ -1,6 +1,7 @@
 import shutil
 import os
 import subprocess
+from collections.abc import Mapping
 
 __all__ = ["Wandb"]
 
@@ -36,6 +37,15 @@ class WandbUrls:
         msg += "=================================================================================================================================\n"
         return msg
 
+def flatten_dict(cfg):
+    rtn = {}
+    for k,v in cfg.items():
+        if isinstance(v, Mapping):
+            sub = {f"k/{sub_k}":sub_v for sub_k, sub_v in flatten_dict(v).items()}
+            rtn.update(sub)
+        else:
+            rtn[k]=v
+    return rtn
 
 class Wandb:
     IS_ACTIVE = False
@@ -108,9 +118,21 @@ class Wandb:
 
         filename = os.path.basename(file_path)
         shutil.copyfile(file_path, os.path.join(wandb.run.dir, filename))
+
     @staticmethod
     def finish():
         if not Wandb.IS_ACTIVE:
             pass
         import wandb
         wandb.finish()
+
+    @staticmethod
+    def config(cfg):
+        if not Wandb.IS_ACTIVE:
+            pass
+        import wandb
+        if isinstance(cfg,dict):
+            wandb.config.update(cfg)
+        else:
+            from omegaconf import OmegaConf
+            wandb.config.update(OmegaConf.to_container(flatten_dict(cfg)))
