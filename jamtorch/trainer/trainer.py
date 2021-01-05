@@ -143,9 +143,6 @@ class Trainer:
             "backward:after", self, feed_dict, loss, monitors, cmdviz_dict
         )
         if loss.requires_grad:
-            # fmf: off
-            from IPython import embed; embed()
-            # fmf: on
             self.optimizer.step()
 
         if measure_time:
