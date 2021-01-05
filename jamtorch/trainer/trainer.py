@@ -143,13 +143,17 @@ class Trainer:
             "backward:after", self, feed_dict, loss, monitors, cmdviz_dict
         )
         if loss.requires_grad:
+            # fmf: off
+            from IPython import embed; embed()
+            # fmf: on
             self.optimizer.step()
 
         if measure_time:
             metrics["time/optimize"] = cuda_time() - end_time
             end_time = cuda_time(False)
 
-        self.trigger_event("step:after", self, metrics)
+        # FIXME! metrics here is very strong
+        self.trigger_event("step:after", self, monitors)
 
         #! FIXME! should be place here
         loss_f = as_float(loss)
@@ -158,7 +162,7 @@ class Trainer:
         self.cmdviz.update("train", cmdviz_f)
         monitors.update(cmdviz_f)
         # think twice on return value
-        return loss_f, group_prefix("train", monitors)
+        return loss_f, group_prefix("train", as_float(monitors))
 
     def register_event(self, name, callback):
         logger.info(
