@@ -120,6 +120,14 @@ class Wandb:
         shutil.copyfile(file_path, os.path.join(wandb.run.dir, filename))
 
     @staticmethod
+    def log(*args, **kargs):
+        if not Wandb.IS_ACTIVE:
+            raise RuntimeError("wandb is inactive, please launch first.")
+        import wandb
+
+        wandb.log(*args, **kargs)
+
+    @staticmethod
     def finish():
         if not Wandb.IS_ACTIVE:
             pass
