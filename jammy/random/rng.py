@@ -7,6 +7,7 @@ import numpy.random as npr
 from jammy.utils.defaults import defaults_manager
 from jammy.utils.registry import Registry
 from jammy.utils.env import jam_getenv
+from jammy.utils.cache import cached_result
 
 __all__ = ['JamRandomState', 'get_default_rng', 'gen_seed', 'gen_rng', 'reset_global_seed']
 
@@ -43,22 +44,29 @@ class JamRandomState(npr.RandomState):
     def as_default(self):
         yield self
 
+@cached_result
+def jam_rng_seed():
+    return jam_getenv('RANDOM_SEED', None, int)
 
 _rng = JamRandomState()
 
 
 get_default_rng = defaults_manager.gen_get_default(JamRandomState, default_getter=lambda: _rng)
 
+class _RngRegistry(Registry):
+    def register(self, entry, value):
+        seed = jam_rng_seed()
+        if seed is not None:
+            value()(seed)
+        return super().register(entry, value)
 
 def gen_seed():
     return get_default_rng().randint(4294967296)
 
-
 def gen_rng(seed=None):
     return JamRandomState(seed)
 
-
-global_rng_registry = Registry()
+global_rng_registry = _RngRegistry()
 global_rng_registry.register('jammy', lambda: _rng.seed)
 global_rng_registry.register('numpy', lambda: npr.seed)
 global_rng_registry.register('sys', lambda: sys_random.seed)
@@ -67,18 +75,10 @@ global_rng_registry.register('sys', lambda: sys_random.seed)
 def reset_global_seed(seed=None, verbose=False):
     if seed is None:
         seed = gen_seed()
+    seed = int(seed)
     for k, seed_getter in global_rng_registry.items():
         if verbose:
             from jammy.logging import get_logger
             logger = get_logger()
             logger.critical('Reset random seed for: {} (pid={}, seed={}).'.format(k, os.getpid(), seed))
         seed_getter()(seed)
-
-
-def _initialize_global_seed():
-    seed = jam_getenv('RANDOM_SEED', 6, int)
-    if seed is not None:
-        reset_global_seed(seed)
-
-
-_initialize_global_seed()
