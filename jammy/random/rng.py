@@ -6,6 +6,7 @@ import numpy.random as npr
 
 from jammy.utils.defaults import defaults_manager
 from jammy.utils.registry import Registry
+from jammy.utils.env import jam_getenv
 
 __all__ = ['JamRandomState', 'get_default_rng', 'gen_seed', 'gen_rng', 'reset_global_seed']
 
@@ -58,7 +59,7 @@ def gen_rng(seed=None):
 
 
 global_rng_registry = Registry()
-global_rng_registry.register('jaminle', lambda: _rng.seed)
+global_rng_registry.register('jammy', lambda: _rng.seed)
 global_rng_registry.register('numpy', lambda: npr.seed)
 global_rng_registry.register('sys', lambda: sys_random.seed)
 
@@ -75,7 +76,7 @@ def reset_global_seed(seed=None, verbose=False):
 
 
 def _initialize_global_seed():
-    seed = os.getenv('JAM_RANDOM_SEED', None)
+    seed = jam_getenv('RANDOM_SEED', 6, int)
     if seed is not None:
         reset_global_seed(seed)
 
