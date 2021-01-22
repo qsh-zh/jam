@@ -75,10 +75,9 @@ def load_yml_config(root, bash_file, recursive=False):
 
 def main():
     f = tempfile.NamedTemporaryFile("w", delete=False)
-    load_yml_config(osp.dirname(osp.dirname(__file__)), f)
-    load_yml_config(os.getcwd(), f, recursive=True)
+    load_yml_config(osp.dirname(osp.dirname(__file__)), f) # jammy package configuration
+    load_yml_config(os.getcwd(), f, recursive=True) # project configuration
     f.close()
-    logger.info(f.name)
     print(f.name)
 
 

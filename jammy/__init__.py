@@ -1,1 +1,5 @@
-from jammy.cli.argument import JamArgumentParser
+from jammy.utils.init import init_main
+
+init_main()
+
+del init_main

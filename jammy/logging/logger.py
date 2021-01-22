@@ -5,7 +5,7 @@ __all__ = ["get_logger"]
 
 logger.remove()
 
-logger_sink = []
+logger_sink = {}
 
 
 def get_logger(file_name=None, **kwargs):
@@ -13,9 +13,9 @@ def get_logger(file_name=None, **kwargs):
         file_name = sys.stderr
         kwargs["level"] = "INFO"
     global logger_sink
-    if file_name in logger_sink:
+    if file_name in logger_sink.values():
         logger.debug(f"{file_name} already registered")
     else:
-        logger.add(file_name, **kwargs)
-        logger_sink.append(file_name)
+        sink_id = logger.add(file_name, **kwargs)
+        logger_sink[sink_id] = file_name
     return logger
