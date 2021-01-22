@@ -1,7 +1,8 @@
 import numpy as np
-import torch
 from torch import nn
 
+__all__ = ["BatchNorm1d","BatchNorm2d","BatchNorm3d","Conv1d",\
+    "Conv2d","Conv3d","FC"]
 
 class BaseModule(nn.Module):
     """ Base module class with some basic additions to the pytorch Module class

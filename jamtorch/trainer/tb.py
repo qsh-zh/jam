@@ -28,6 +28,7 @@ class TBLogger(object):
     def image_summary(self, tag, images, step):
         img_summaries = []
         for i, img in enumerate(images):
+            # BUG: remove toimage
             # Write the image to a string
             s = BytesIO()
             scipy.misc.toimage(img).save(s, format="png")

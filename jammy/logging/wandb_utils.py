@@ -1,7 +1,9 @@
+from jammy.utils.naming import class_name_of_method
 import shutil
 import os
 import subprocess
 from collections.abc import Mapping
+from omegaconf import OmegaConf
 
 __all__ = ["Wandb"]
 
@@ -91,6 +93,7 @@ class Wandb:
 
             config = wandb_args.get("config", {})
             wandb_args["config"] = {
+                **OmegaConf.to_container(cfg, resolve=True),
                 **config,
                 "run_path": os.getcwd(),
                 "commit": commit_sha,

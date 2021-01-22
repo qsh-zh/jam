@@ -33,9 +33,16 @@ class TrainerMonitor:
                 self.counter[k].update(1, 1)
                 self._tb_logger.scalar_summary(k, v, self.counter[k].tot_count)
 
+    # TODO: add a method for adding image here! 
     def flush(self):
         if self.is_wandb:
             # TODO:
             pass
         if self.is_tblogger:
             self._tb_logger.flush()
+
+    def close(self):
+        if self.is_wandb:
+            wandb.finish()
+        if self.is_tblogger:
+            self._tb_logger.close()

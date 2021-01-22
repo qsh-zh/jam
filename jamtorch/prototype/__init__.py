@@ -1,5 +1,4 @@
 from .pytorch_util import *
-from .network import *
 from .pytorch_util import set_gpu_mode as _set_gpu_mode
 
 

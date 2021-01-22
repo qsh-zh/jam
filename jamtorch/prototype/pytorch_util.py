@@ -9,6 +9,7 @@ __all__ = [
     "normal",
     "ones",
     "ones_like",
+    "randn",
     "set_device",
     "set_gpu_mode",
     "soft_update_from_to",
@@ -134,3 +135,6 @@ def tensor(*args, torch_device=None, **kwargs):
 
 def normal(*args, **kwargs):
     return torch.normal(*args, **kwargs).to(device)
+
+def randn(*args, **kwargs):
+    return torch.randn(*args, **kwargs).to(device)

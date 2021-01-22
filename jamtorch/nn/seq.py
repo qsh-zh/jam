@@ -9,6 +9,7 @@ from .base_modules import (
     FC,
 )
 
+__all_ = ["Seq"]
 
 class Seq(nn.Sequential):
     def __init__(self, input_channels):
