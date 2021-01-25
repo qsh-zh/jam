@@ -1,0 +1,6 @@
+#!/bin/bash -E
+
+JAMROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../ && pwd )"
+
+export CUDA_VISIBLE_DEVICES=$1 && shift
+$JAMROOT/bin/jam-run "$@"
