@@ -91,9 +91,12 @@ class Wandb:
                 commit_sha = "n/a"
                 gitdiff = ""
 
+            all_cfg_dict = OmegaConf.to_container(cfg, resolve=True)
+            if "wandb" in all_cfg_dict:
+                del all_cfg_dict["wandb"]
             config = wandb_args.get("config", {})
             wandb_args["config"] = {
-                **OmegaConf.to_container(cfg, resolve=True),
+                "z": all_cfg_dict,
                 **config,
                 "run_path": os.getcwd(),
                 "commit": commit_sha,

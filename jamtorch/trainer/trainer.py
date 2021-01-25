@@ -5,7 +5,7 @@ import time
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import tqdm
+from tqdm.auto import tqdm
 from jammy.cli.cmdline_viz import CmdLineViz
 from jammy.event import SimpleEventRegistry
 from jammy.logging import get_logger

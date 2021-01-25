@@ -1,5 +1,6 @@
 from .pytorch_util import *
 from .pytorch_util import set_gpu_mode as _set_gpu_mode
+from .optim import *
 
 
 def set_gpu_mode(mode, gpu_id=0):
