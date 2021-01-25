@@ -5,7 +5,7 @@ import time
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from tqdm.auto import tqdm
+from tqdm.auto import tqdm, trange
 from jammy.cli.cmdline_viz import CmdLineViz
 from jammy.event import SimpleEventRegistry
 from jammy.logging import get_logger
@@ -77,7 +77,7 @@ class Trainer:
         self.model.eval()
 
         loss_meter = AverageMeter()
-        with tqdm.tqdm(total=len(data_loader), leave=False, desc="val") as pbar:
+        with tqdm(total=len(data_loader), leave=False, desc="val") as pbar:
             with torch.no_grad():
                 for i, batch in enumerate(data_loader):
                     loss, minitor, cmdviz_dict = self.loss_fn(
@@ -188,9 +188,11 @@ class Trainer:
         )
 
         self.iter_cnt = start_it
-        with tqdm.trange(
+        # FIXME: I am not sure this is good or bad
+        train_losses = []
+        with trange(
             start_epoch, n_epochs, desc="epochs", dynamic_ncols=True
-        ) as tbar, tqdm.tqdm(
+        ) as tbar, tqdm(
             total=eval_frequency, leave=False, desc="train", dynamic_ncols=True
         ) as pbar:
             self.trigger_event("epoch:start", self)
@@ -233,7 +235,7 @@ class Trainer:
                             {**monitor, "epoch": self.epoch_cnt, "iter": self.iter_cnt}
                         )
 
-                pbar = tqdm.tqdm(
+                pbar = tqdm(
                     total=eval_frequency, leave=False, desc="train", dynamic_ncols=True
                 )
                 pbar.set_postfix(dict(total_it=self.iter_cnt))

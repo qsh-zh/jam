@@ -1,5 +1,5 @@
 from .colors import COLORS
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 from collections import defaultdict
 

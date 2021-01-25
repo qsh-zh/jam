@@ -1,5 +1,10 @@
 # Trainer
 
+## TODO
+
+* The procedure bar is not well design!
+* JTrainer
+
 ## Responsibility
 
 ### Env
