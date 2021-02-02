@@ -1,0 +1,16 @@
+hydra:
+  run:
+    dir: /tmp/jamdk/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  hydra_logging:
+    disable_existing_loggers: true
+  sweep:
+    dir: /tmp/jamdk/multirun/${now:%Y-%m-%d}/${now:%H-%M-%S}
+
+img: qinsheng/lab_dev
+name: daily
+
+x: true
+jam: true
+file: container.jamdk
+network: host
+
