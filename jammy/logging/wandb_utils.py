@@ -70,6 +70,11 @@ class Wandb:
 
             Wandb.IS_ACTIVE = True
 
+            if "trainer" in cfg:
+                g_cfg = cfg
+                cfg = cfg.trainer
+            else:
+                g_cfg = cfg
             wandb_args = {}
             wandb_args["project"] = cfg.wandb.project
             wandb_args["tags"] = cfg.wandb.tags
@@ -91,7 +96,7 @@ class Wandb:
                 commit_sha = "n/a"
                 gitdiff = ""
 
-            all_cfg_dict = OmegaConf.to_container(cfg, resolve=True)
+            all_cfg_dict = OmegaConf.to_container(g_cfg, resolve=True)
             if "wandb" in all_cfg_dict:
                 del all_cfg_dict["wandb"]
             config = wandb_args.get("config", {})
