@@ -1,5 +1,5 @@
 
-vendors:
+#vendors:
     # ReservoirSample-PyTorch:
     #     root: vendors/pytorch_reservoir
     # AdvancedIndexing-PyTorch:
@@ -17,9 +17,9 @@ vendors:
     # PyPatchMatch:
     #     root: vendors/PyPatchMatch
 
-# system:
-  # envs:
-    # abc: 1
+system:
+   envs:
+     WANDB_API_KEY: e63a92374c00b1da163fabe6331f38a8efa4fed0
 
 conda:
-  # env: rs
+   env: base
