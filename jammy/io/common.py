@@ -2,7 +2,7 @@ import os.path as osp
 import math
 import contextlib
 
-__all__ = ["get_ext", "fsize_format", "auto_close"]
+__all__ = ["get_ext", "fsize_format", "auto_close", "get_name"]
 
 unit_list = list(zip(["bytes", "kB", "MB", "GB", "TB", "PB"], [0, 0, 1, 2, 2, 2]))
 
@@ -13,6 +13,10 @@ def get_ext(fname, match_first=False):
         return fname[fname.find(".") :]
     else:
         return osp.splitext(fname)[1]
+
+def get_name(fname, match_first=False):
+    ext = get_ext(fname, match_first)
+    return fname[:-len(ext)]
 
 
 def fsize_format(num):

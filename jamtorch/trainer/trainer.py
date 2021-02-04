@@ -80,6 +80,7 @@ class Trainer:
         with tqdm(total=len(data_loader), leave=False, desc="val") as pbar:
             with torch.no_grad():
                 for i, batch in enumerate(data_loader):
+                    # FIXME what is the usage of momitot, should be fix the api, make an agreement
                     loss, minitor, cmdviz_dict = self.loss_fn(
                         self.model, batch, is_train=False
                     )
