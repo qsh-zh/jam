@@ -124,7 +124,7 @@ class Wandb:
     @staticmethod
     def add_file(file_path: str):
         if not Wandb.IS_ACTIVE:
-            raise RuntimeError("wandb is inactive, please launch first.")
+            return
         import wandb
 
         filename = os.path.basename(file_path)
@@ -141,14 +141,14 @@ class Wandb:
     @staticmethod
     def finish():
         if not Wandb.IS_ACTIVE:
-            pass
+            return
         import wandb
         wandb.finish()
 
     @staticmethod
     def config(cfg):
         if not Wandb.IS_ACTIVE:
-            pass
+            return 
         import wandb
         if isinstance(cfg,dict):
             wandb.config.update(cfg)
