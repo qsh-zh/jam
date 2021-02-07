@@ -6,7 +6,7 @@ import os.path as osp
 import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
-from jamtorch.trainer import Trainer
+from jamtorch.trainer import Trainer, step_lr
 from jammy.logging import Wandb
 import hydra
 from omegaconf import OmegaConf
@@ -59,10 +59,7 @@ def build_loss(device):
 
 
 def run(cfg):
-    Wandb.launch(cfg, not cfg.debug, True)
     use_cuda = not cfg.no_cuda and torch.cuda.is_available()
-
-    torch.manual_seed(cfg.seed)
 
     device = torch.device("cuda" if use_cuda else "cpu")
 
@@ -88,17 +85,18 @@ def run(cfg):
     scheduler = StepLR(optimizer, step_size=1, gamma=cfg.gamma)
 
     trainer = Trainer(model, optimizer, build_loss(device), scheduler)
-    trainer.set_monitor(not cfg.debug)
-    trainer.train(cfg.epochs, train_loader, test_loader)
+    trainer.set_monitor(cfg.wandb.log)
+    trainer.register_event("epoch:after", step_lr)
+    trainer(cfg.epochs, train_loader, test_loader, cfg.trainer.ckpt, cfg.trainer.resume)
+    # trainer.train(cfg.epochs, train_loader, test_loader)
 
 
 @hydra.main(config_name="hydra_mnist.yaml")
 def main(cfg):
+    Wandb.launch(cfg, cfg.wandb.log, True)
     OmegaConf.set_struct(cfg, False)
-    # fmf: off
-    # from IPython import embed; embed()
-    # fmf: on
     run(cfg)
+    Wandb.finish()
 
 
 if __name__ == "__main__":

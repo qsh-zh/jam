@@ -5,14 +5,13 @@ epochs: 14
 lr: 1.0
 gamma: 0.7
 no_cuda: False
-dry_run: False
-debug: False
-seed: 1
-log_interval: 10
-save_model: False
+
+trainer:
+  resume: True
+  ckpt: outputs/2021-02-07/01-45-44/checkpoint
 
 wandb:
-  log: True
+  log: false
   project: "jammy"
   name: "hydra_mnist"
   tags:
