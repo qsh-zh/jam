@@ -196,7 +196,7 @@ class Trainer:
         monitors = as_float(monitors)
         monitors.update(cmdviz_f)
 
-        self.cur_monitor.update(monitors)
+        self.cur_monitor.update(group_prefix("train", monitors))
         self.cmdviz.update("train", cmdviz_f)
         return loss_f
 
