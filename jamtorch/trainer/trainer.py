@@ -95,7 +95,7 @@ class Trainer:
         self.trainer_monitor = TrainerMonitor(is_wandb, tblogger)
 
     def load_ckpt(self, filename="checkpoint"):
-        env = load_checkpoint(self.model, self.optimizer, filename)
+        env = load_checkpoint(self.model, self.optimizer, hydpath(filename))
         self.load_env(env)
 
     def __call__(
@@ -111,7 +111,7 @@ class Trainer:
         """
         # FIXME
         if is_resume:
-            self.load_ckpt(hydpath(trainer_ckpt))
+            self.load_ckpt(trainer_ckpt)
             start_epoch = self.epoch_cnt + 1
             start_iter = self.iter_cnt + 1
             loss = self.best_loss
@@ -184,6 +184,9 @@ class Trainer:
             )
             self.optimizer.step()
 
+        return self._train_step_after(loss, monitors, cmdviz_dict)
+
+    def _train_step_after(self, loss, monitors, cmdviz_dict):
         self.trigger_event("step:after", self)
 
         loss_f = as_float(loss)
@@ -279,6 +282,7 @@ class Trainer:
                 )
 
             self.trigger_event("epoch:finish", self)
+        pbar.clear()
         return self.best_loss
 
     def eval_state(self, val_loader, batch_cnt, num_batch):
