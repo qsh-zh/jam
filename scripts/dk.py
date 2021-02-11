@@ -64,7 +64,8 @@ def check_x_display(cfg):
     return [
         "--volume=/tmp/.X11-unix:/tmp/.X11-unix",
         "--volume=/tmp/.docker.xauth:/tmp/.docker.xauth",
-        f'--env="DISPLAY={display}"',
+        "-e",
+        f"DISPLAY={display}",
     ]
 
 
