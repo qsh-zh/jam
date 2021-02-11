@@ -8,27 +8,29 @@ try:
 except:
     APEX_AVAILABLE = False
 
+__all__ = ["CfgTrainer"]
+
 
 class CfgTrainer(Trainer):
     def load_env(self, cfg):
         super().load_env(cfg)
-        is_ewa = cfg.getattr("ewa") or False
+        is_ewa = cfg.get("ewa") or False
         if is_ewa:
             self.ewa = EWA(
-                cfg.getattr("ewa_beta"),
-                cfg.getattr("ewa_num_warm"),
-                cfg.getattr("ewa_num_every"),
+                cfg.get("ewa_beta"),
+                cfg.get("ewa_num_warm"),
+                cfg.get("ewa_num_every"),
                 self.model,
             )
-            if cfg.getattr("ewa_state") is not None:
+            if cfg.get("ewa_state") is not None:
                 # if cfg from checkpoint
-                self.ewa.load_dict(cfg.getattr("ewa_state"))
+                self.ewa.load_dict(cfg.get("ewa_state"))
         else:
             self.ewa = None
         self.load_fp16(cfg)
 
     def load_fp16(self, cfg):
-        self.fp16 = bool(cfg.getattr("fp16") or False)
+        self.fp16 = bool(cfg.get("fp16") or False)
         assert not self.fp16 or self.fp16 and APEX_AVAILABLE, "INSTALL Apex"
         if self.fp16:
             if self.ewa:
@@ -61,6 +63,7 @@ class CfgTrainer(Trainer):
 
     def __call__(self, train_loader, val_loader):
         if self._cfg.resume:
+            self.load_ckpt(self._cfg.ckpt)
             start_epoch = self.epoch_cnt + 1
             start_iter = self.iter_cnt + 1
             loss = self.best_loss
@@ -82,5 +85,5 @@ class CfgTrainer(Trainer):
             with amp.scale_loss(loss, self.optimizer) as scaled_loss:
                 scaled_loss.backward()
         else:
-            loss.loss_backward()
+            loss.backward()
         return True

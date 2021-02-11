@@ -35,7 +35,7 @@ def load_checkpoint(model=None, optimizer=None, filename="checkpoint"):
             model.load_state_dict(checkpoint["model_state"])
         if optimizer is not None and checkpoint["optimizer_state"] is not None:
             optimizer.load_state_dict(checkpoint["optimizer_state"])
-        logger.critical("==> Done")
+        logger.critical("==> Loading ckpt Done")
         return env
     else:
         logger.critical("==> Checkpoint '{}' not found".format(filename))

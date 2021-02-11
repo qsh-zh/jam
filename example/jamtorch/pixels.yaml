@@ -1,0 +1,41 @@
+
+lr: 1e-3
+gamma: 0.9
+cuda: True
+
+data:
+  is_fourier: true
+  fourier_dim: 50
+  img: pixels.png
+  batch_size: 102400
+
+model:
+  is_fourier: ${data.is_fourier}
+  fourier_dim: ${data.fourier_dim}
+  is_batchnorm: true
+
+
+trainer:
+  resume: true
+  ckpt: /home/qzhang419/jam/example/jamtorch/outputs/2021-02-11/17-03-43/model_best
+  ckptDir:
+  epochs: 50
+  fp16: false
+  ewa: true
+  ewa_beta: 0.9
+  ewa_num_warm: 5
+  ewa_num_every: 7
+
+  eval_epoch: 1
+  eval_iter: -1
+
+  wandb:
+    log: false
+    project: "jammy"
+    name: ""
+    tags:
+      - "jamtorch"
+      - "cfgtrainer"
+    notes:
+      "test CfgTrainer"
+    entity: "qinsheng"

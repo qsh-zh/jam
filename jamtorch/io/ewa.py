@@ -1,4 +1,7 @@
 import copy
+from jammy.logging import get_logger
+
+logger = get_logger()
 
 __all__ = ["EWA"]
 
@@ -20,7 +23,7 @@ class EWA:
             return
         if self.model is None:
             self.model = new_model
-        if self.cnt = self.num_warm:
+        if self.cnt == self.num_warm:
             self._old_model.load_state_dict(new_model.state_dict())
             return
         if self.cnt % self.num_every == 0:
@@ -49,5 +52,6 @@ class EWA:
     def load_dict(self, ewa_dict):
         self.cnt = ewa_dict.get("cnt") or 0
         self.num_warm = ewa_dict.get("num_warm") or 0
-        self.model = self._old_model.load_state_dict(ewa_dict.get("model"))
+        self._old_model.load_state_dict(ewa_dict.get("model"))
         self.beta = ewa_dict.get("beta") or 0.9
+        logger.critical("=====> Loading EWA finish =====>")

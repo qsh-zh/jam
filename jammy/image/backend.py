@@ -34,7 +34,7 @@ if cv2 is None:
         )
 
 
-FORCE_PIL_BGR = True
+FORCE_PIL_BGR = False
 
 
 def opencv_or_pil(func):
@@ -89,7 +89,7 @@ def imread(path):
     if cv2:
         return cv2.imread(path)
     else:
-        image = Image.open(path)
+        image = Image.open(path).convert('RGB')
         return pil_img2nd(image)
 
 

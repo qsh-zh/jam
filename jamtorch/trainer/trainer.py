@@ -4,7 +4,7 @@ import time
 
 import torch
 
-# from tqdm.auto import tqdm, trange
+from tqdm.auto import tqdm, trange
 from jammy.cli.cmdline_viz import CmdLineViz
 from jammy.event import SimpleEventRegistry
 from jammy.logging import get_logger

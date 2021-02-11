@@ -1,90 +1,54 @@
 # This is an exmaple to take advantage of trainer
 # The design of trainer is a simple model for quick prototype
 # For training process, user needs to implement the loss_fn, and other visualizization functions
-from jamtorch.trainer import Trainer
+from jamtorch.trainer import CfgTrainer, hydpath
 import numpy as np
-import time
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 from jammy.image import imread, imwrite
 from jammy.logging import Wandb
 import jamtorch.prototype as jampt
+from torch.optim.lr_scheduler import StepLR
+import jamtorch.nn as nn
 from omegaconf import OmegaConf
-
-cfg = OmegaConf.load("pixel.yaml")
-cfg.wandb.log = False
-Wandb.launch(cfg, cfg.wandb.log)
-img = imread("position_mlp.jpg").reshape(-1, 3)
+from einops import repeat
+import hydra
 
 
 def init_model(cfg):
-    INPUT = 2 + 2 * cfg.sin_order if cfg.sin_condition else 2
-    if cfg.loss == "mse":
-        OUTPUT = 3
-    elif cfg.loss == "nll":
-        OUTPUT = 3 * 255
-    else:
-        raise RuntimeError()
-    model = jampt.MLP(INPUT, 3, 64, OUTPUT, is_batchnorm=cfg.is_batchnorm).to(
-        jampt.device
-    )
+    INPUT = 2 * cfg.fourier_dim if cfg.is_fourier else 2
+    model = nn.MLP(INPUT, 3, 64, 3, is_batchnorm=cfg.is_batchnorm)
     return model
 
 
 def mse_loss_fn(model, feed_dict, is_train):
     data, target = feed_dict
-    data, target = data.to(jampt.device), target.to(jampt.device)
+    data, target = data.float().to(jampt.device), target.to(jampt.device).float()
     output = model(data)
-    loss = F.mse_loss(target, output)
-    if is_train:
-        return loss, {}, {}
-    pred = output.type(torch.long)
-    correct = pred.eq(target.view_as(pred)).sum(axis=1) == 3
-    correct = correct.sum()
-    return loss, {}, {"correct": correct}
-
-
-def nll_loss_fn(model, feed_dict, is_train):
-    data, target = feed_dict
-    target.flatten()
-    B = data.shape[0]
-    output = model(data).view(B * 3, 256)
-    loss = F.nll_loss(F.log_softmax(output, dim=1), target)
-    if is_train:
-        return loss, {}, {}
-    pred = output.argmax(dim=1, keepdim=True)
-    pixel_mse = F.mse_loss(pred, target.view_as(pred))
-    correct = pred.eq(target.view_as(pred)).view(B, -1).sum(axis=1) == 3
-    correct = correct.sum()
-    return loss, {}, {"pixel_mse": pixel_mse, "correct": correct}
-
+    loss = F.l1_loss(target, output)
+    return loss, {}, {}
 
 class ImgDataset(Dataset):
-    def __init__(self, img_path, is_fourier):
-        # ! fixme
-        # self.img = jampt.FloatTensor(imread(img_path).astype('float32'))
-        self.img = torch.from_numpy(imread(img_path)).type(torch.long)
+    def __init__(self, cfg):
+        self.img = torch.FloatTensor(imread(hydpath(cfg.img)).copy()) / 255
         self.row = self.img.shape[0]
         self.column = self.img.shape[1]
 
         rows, columns = np.meshgrid(np.arange(self.column), np.arange(self.row))
         self.mesh_xs = torch.FloatTensor(
             np.stack([columns, rows], axis=2).reshape(-1, 2)
-        )
-        if is_fourier:
-            space = np.stack(
-                [columns * np.pi / self.row, rows * np.pi / self.column], axis=2
-            ).reshape(-1, 2)
-            sin = []
-            for i in range(1, 1 + cfg.sin_order):
-                sin.append(np.sin(space).T)
-            sin = torch.FloatTensor(sin).reshape(2 * cfg.sin_order, -1).T
-            self.mesh_xs = torch.cat((self.mesh_xs, sin), dim=1)
+        ) # (row_th, col_th)
+        if cfg.is_fourier:
+            position = repeat(self.mesh_xs, 'w h -> w (c h)', c=cfg.fourier_dim)
+            fre = np.arange(1, cfg.fourier_dim+1)[:,None] * np.array([2*np.pi / self.row, 2*np.pi / self.column])[None, :]
+            fre = fre.reshape(1, -1) * 0.26
+            self.mesh_xs = torch.sin(position * fre)
 
-        self.pixels = self.img.view(-1, 3)
+        self.pixels = self.img.view(self.column * self.row, 3)
+        save_img = (self.pixels *255).view(self.row, self.column, 3)
+        imwrite("gt.png", jampt.get_numpy(save_img).astype(np.uint8))
 
     def __len__(self):
         return self.row * self.column
@@ -92,59 +56,46 @@ class ImgDataset(Dataset):
     def __getitem__(self, idx):
         return self.mesh_xs[idx], self.pixels[idx]
 
+def init_data(cfg):
+    train_kwargs = {"batch_size": cfg.batch_size}
+    test_kwargs = {"batch_size": cfg.batch_size}
+    cuda_kwargs = {"shuffle": True, "pin_memory": True}
+    trainset = ImgDataset(cfg)
+    valset = ImgDataset(cfg)
+    trainloader = DataLoader(trainset, **train_kwargs, **cuda_kwargs)
+    valloader = DataLoader(valset, **test_kwargs, **cuda_kwargs)
+    return trainloader, valloader
 
-def init_fn(cfg):
-    if cfg.loss == "mse":
-        return mse_loss_fn, mse_val_after
-    elif cfg.loss == "nll":
-        return nll_loss_fn, nll_val_after
-    else:
-        raise RuntimeError
+def eval_after_wraper(trainloader):
+    trainset = trainloader.dataset
+    def mse_val_after(trainer, *args):
+        with torch.no_grad():
+            output = trainer.ewa.model(trainset.mesh_xs.float().to(jampt.device))
+            img = output.view(trainset.row, trainset.column, 3)
+            img = jampt.get_numpy(img)
+            save_img = (img * 255).astype(np.uint8)
+            imwrite(f"mse_{trainer.epoch_cnt}.jpg", save_img)
+    return mse_val_after
 
+def run(cfg):
+    jampt.set_gpu_mode(cfg.cuda)
+    trainloader, valloader = init_data(cfg.data)
+    eval_after_fn = eval_after_wraper(trainloader)
+    model = init_model(cfg.model).to(jampt.device)
+    optimizer = optim.Adam(model.parameters(), lr=cfg.lr)
+    scheduler = StepLR(optimizer, step_size=1, gamma=cfg.gamma)
+    trainer = CfgTrainer(model, optimizer, mse_loss_fn, scheduler, cfg.trainer)
+    trainer.register_event("val:after", eval_after_fn)
+    trainer.set_monitor(cfg.trainer.wandb.log)
+    trainer(trainloader, valloader)
 
-train_kwargs = {"batch_size": img.shape[0]}
-test_kwargs = {"batch_size": img.shape[0]}
-if cfg.use_cuda:
-    jampt.set_gpu_mode(True, 0)
-    cuda_kwargs = {"shuffle": True, "pin_memory": True, "num_workers": 6}
-    train_kwargs.update(cuda_kwargs)
-    test_kwargs.update(cuda_kwargs)
-trainset = ImgDataset("position_mlp.jpg", cfg.sin_condition)
-valset = ImgDataset("position_mlp.jpg", cfg.sin_condition)
-
-
-def mse_val_after(trainer, epoch):
-    global trainset
-    with torch.no_grad():
-        output = trainer.model(trainset.mesh_xs.to(jampt.device))
-        pred = output.type(torch.long)
-        img = pred.view(trainset.row, trainset.column, 3)
-        img = jampt.get_numpy(img)
-        imwrite(f"mse_{epoch}.jpg", img)
-
-
-def nll_val_after(trainer, epoch):
-    global trainset
-    with torch.no_grad():
-        output = trainer.model(trainset.mesh_xs).view(-1, 256)
-        pred = output.argmax(dim=1, keepdim=True)
-        img = pred.view(trainset.row, trainset.column, 3)
-        img = jampt.get_numpy(img)
-        imwrite(f"nll_{epoch}.jpg", img)
-
-
-trainloader = DataLoader(trainset, **train_kwargs)
-valloader = DataLoader(valset, **test_kwargs)
-
-model = init_model(cfg)
-loss_fn, val_after = init_fn(cfg)
+@hydra.main(config_name="pixels.yaml")
+def main(cfg):
+    Wandb.launch(cfg, cfg.trainer.wandb.log, True)
+    OmegaConf.set_struct(cfg, False)
+    run(cfg)
+    Wandb.finish()
 
 
-optimizer = optim.Adam(model.parameters(), lr=cfg.lr)
-
-
-trainer = Trainer(model, optimizer, loss_fn)
-trainer.register_event("val:after", val_after)
-trainer.set_monitor(cfg.wandb.log)
-
-trainer.train(cfg.N_epoch, trainloader, valloader)
+if __name__ == "__main__":
+    main()
