@@ -3,9 +3,8 @@ import os.path as osp
 import time
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from tqdm.auto import tqdm, trange
+
+# from tqdm.auto import tqdm, trange
 from jammy.cli.cmdline_viz import CmdLineViz
 from jammy.event import SimpleEventRegistry
 from jammy.logging import get_logger
@@ -36,7 +35,7 @@ class EvalState(JamEnum):
 
 
 class Trainer:
-    def __init__(self, model, optimizer, loss_fn, lr_scheduler=None):
+    def __init__(self, model, optimizer, loss_fn, lr_scheduler=None, cfg=dict()):
         (self.model, self.optimizer, self.loss_fn, self.lr_scheduler,) = (
             model,
             optimizer,
@@ -68,7 +67,8 @@ class Trainer:
         self.cur_cmdviz = dict()
 
         # trainer env states
-        self.load_env(dict())
+        self._cfg = cfg
+        self.load_env(cfg)
 
     def load_env(self, dict_cfg):
         self.eval_epoch = dict_cfg.get("eval_epoch") or 1
@@ -163,6 +163,10 @@ class Trainer:
                 osp.join(self.checkpoint_dir, "checkpoint"),
             )
 
+    def loss_backward(self, loss):
+        loss.loss_backward()
+        return True
+
     def train_step(self, feed_dict):
         self.trigger_event("step:before", self)
         self.trigger_event("forward:before", self, feed_dict)
@@ -178,11 +182,12 @@ class Trainer:
             self.trigger_event(
                 "backward:before", self, feed_dict, loss, monitors, cmdviz_dict
             )
-            loss.backward()
-            self.trigger_event(
-                "backward:after", self, feed_dict, loss, monitors, cmdviz_dict
-            )
-            self.optimizer.step()
+            # The design is useful for accumulated loss
+            if self.loss_backward(loss):
+                self.trigger_event(
+                    "backward:after", self, feed_dict, loss, monitors, cmdviz_dict
+                )
+                self.optimizer.step()
 
         return self._train_step_after(loss, monitors, cmdviz_dict)
 
@@ -307,22 +312,3 @@ class Trainer:
                 }
             )
         self.cur_monitor = dict()
-
-    # def on_iter_val(self, loader, pbar):
-    # if self.eval_iter < 0 or loader == None:
-    # return False
-    # if ((self.iter_cnt + 1) % self.eval_iter) == 0:
-    # pbar.close()
-    # self.eval_impl(loader)
-    # self.cmdviz.flush()
-    # return True
-    # return False
-
-    # def on_epoch_eval(self, loader):
-    # if self.eval_epoch < 0 or laoder == None:
-    # return False
-    # if ((self.epoch_cnt + 1) % self.eval_epoch) == 0:
-    # self.eval_impl(loader)
-    # self.cmdviz.flush()
-    # return True
-    # return False
