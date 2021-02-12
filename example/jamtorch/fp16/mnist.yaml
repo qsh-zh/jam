@@ -1,0 +1,34 @@
+lr: 1.0
+gamma: 0.7
+no_cuda: False
+
+
+data:
+  batch_size: 5000
+  test_batch_size: 5000
+
+
+trainer:
+  resume: false
+  ckpt: 
+  ckptDir:
+  epochs: 14
+  fp16: true
+  ewa: true
+  ewa_beta: 0.5
+  ewa_num_warm: 5
+  ewa_num_every: 7
+
+  eval_epoch: 1
+  eval_iter: -1
+
+  wandb:
+    log: false
+    project: "jammy"
+    name: "fp16_mnist"
+    tags:
+      - "jamtorch"
+      - "cfg_trainer"
+    notes:
+      "test the performance of fp16"
+    entity: "qinsheng"
