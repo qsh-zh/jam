@@ -3,13 +3,14 @@ from jammy.logging import get_logger
 
 logger = get_logger()
 
-__all__ = ["EWA"]
+__all__ = ["EMA"]
 
 
 # FIXME: parallel models, need to deal with model
+# Think about a way to save memory
 
 
-class EWA:
+class EMA:
     def __init__(self, beta, num_warm, num_every, model=None):
         self.beta = beta
         self.num_warm = num_warm
@@ -49,9 +50,9 @@ class EWA:
             "beta": self.beta,
         }
 
-    def load_dict(self, ewa_dict):
-        self.cnt = ewa_dict.get("cnt") or 0
-        self.num_warm = ewa_dict.get("num_warm") or 0
-        self._old_model.load_state_dict(ewa_dict.get("model"))
-        self.beta = ewa_dict.get("beta") or 0.9
-        logger.critical("=====> Loading EWA finish =====>")
+    def load_dict(self, ema_dict):
+        self.cnt = ema_dict.get("cnt") or 0
+        self.num_warm = ema_dict.get("num_warm") or 0
+        self._old_model.load_state_dict(ema_dict.get("model"))
+        self.beta = ema_dict.get("beta") or 0.9
+        logger.critical("=====> Loading EMA finish =====>")

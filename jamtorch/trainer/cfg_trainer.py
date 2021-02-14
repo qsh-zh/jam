@@ -1,5 +1,5 @@
 from .trainer import Trainer
-from jamtorch.io import EWA
+from jamtorch.io import EMA
 
 try:
     from apex import amp
@@ -14,28 +14,28 @@ __all__ = ["CfgTrainer"]
 class CfgTrainer(Trainer):
     def load_env(self, cfg):
         super().load_env(cfg)
-        is_ewa = cfg.get("ewa") or False
-        if is_ewa:
-            self.ewa = EWA(
-                cfg.get("ewa_beta"),
-                cfg.get("ewa_num_warm"),
-                cfg.get("ewa_num_every"),
+        is_ema = cfg.get("ema") or False
+        if is_ema:
+            self.ema = EMA(
+                cfg.get("ema_beta"),
+                cfg.get("ema_num_warm"),
+                cfg.get("ema_num_every"),
                 self.model,
             )
-            if cfg.get("ewa_state") is not None:
+            if cfg.get("ema_state") is not None:
                 # if cfg from checkpoint
-                self.ewa.load_dict(cfg.get("ewa_state"))
+                self.ema.load_dict(cfg.get("ema_state"))
         else:
-            self.ewa = None
+            self.ema = None
         self.load_fp16(cfg)
 
     def load_fp16(self, cfg):
         self.fp16 = bool(cfg.get("fp16") or False)
         assert not self.fp16 or self.fp16 and APEX_AVAILABLE, "INSTALL Apex"
         if self.fp16:
-            if self.ewa:
-                (self.model, self.ewa.model), self.optimizer = amp.initialize(
-                    [self.model, self.ewa.model], self.optimizer, opt_level="O1"
+            if self.ema:
+                (self.model, self.ema.model), self.optimizer = amp.initialize(
+                    [self.model, self.ema.model], self.optimizer, opt_level="O1"
                 )
             else:
                 self.model, self.optimizer = amp.initialize(
@@ -45,11 +45,11 @@ class CfgTrainer(Trainer):
     def export_env(self):
         basic_state = super().export_env()
         new_state = {
-            "ewa": bool(self.ewa),
-            "ewa_beta": self.ewa.beta if self.ewa else 0.9,
-            "ewa_num_warm": self.ewa.num_warm if self.ewa else 1,
-            "ewa_num_every": self.ewa.num_every if self.ewa else 1,
-            "ewa_state": self.ewa.dump2dict() if self.ewa else None,
+            "ema": bool(self.ema),
+            "ema_beta": self.ema.beta if self.ema else 0.9,
+            "ema_num_warm": self.ema.num_warm if self.ema else 1,
+            "ema_num_every": self.ema.num_every if self.ema else 1,
+            "ema_state": self.ema.dump2dict() if self.ema else None,
             "fp16": self.fp16,
         }
         return {**basic_state, **new_state}
@@ -76,8 +76,8 @@ class CfgTrainer(Trainer):
 
     def train_step(self, feed_dict):
         rtn = super().train_step(feed_dict)
-        if self.ewa:
-            self.ewa.update_model_average(self.model)
+        if self.ema:
+            self.ema.update_model_average(self.model)
         return rtn
 
     def loss_backward(self, loss):

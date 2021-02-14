@@ -21,10 +21,10 @@ trainer:
   ckptDir:
   epochs: 50
   fp16: false
-  ewa: true
-  ewa_beta: 0.9
-  ewa_num_warm: 5
-  ewa_num_every: 7
+  ema: true
+  ema_beta: 0.9
+  ema_num_warm: 5
+  ema_num_every: 7
 
   eval_epoch: 1
   eval_iter: -1

@@ -164,7 +164,7 @@ class Trainer:
             )
 
     def loss_backward(self, loss):
-        loss.loss_backward()
+        loss.backward()
         return True
 
     def train_step(self, feed_dict):

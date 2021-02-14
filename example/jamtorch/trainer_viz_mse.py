@@ -70,7 +70,7 @@ def eval_after_wraper(trainloader):
     trainset = trainloader.dataset
     def mse_val_after(trainer, *args):
         with torch.no_grad():
-            output = trainer.ewa.model(trainset.mesh_xs.float().to(jampt.device))
+            output = trainer.ema.model(trainset.mesh_xs.float().to(jampt.device))
             img = output.view(trainset.row, trainset.column, 3)
             img = jampt.get_numpy(img)
             save_img = (img * 255).astype(np.uint8)
