@@ -1,0 +1,32 @@
+trainer:
+  rank: 
+  gpu: 
+  cwd: 
+  world_size: 
+    
+  dist:
+    master_addr: 'localhost'
+    master_port: '12355'
+    mode: 'nccl'
+    gpus: 0 # FIXME
+    syncBN: false
+
+  resume: false
+  ckpt: 
+  ckpt_dir:
+  epochs: 14
+  ema: 
+    ema_beta: 0.5
+    ema_num_warm: 5
+    ema_num_every: 7
+
+  wandb:
+    log: false
+    project: "jammy"
+    name: "ddp"
+    tags:
+      - "jamtorch"
+      - "ddp_trainer"
+    notes:
+      "test the performance of ddp"
+    entity: "qinsheng"

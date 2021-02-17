@@ -13,12 +13,20 @@ import functools
 import numpy as np
 
 import torch
-
+import torch.distributed as dist
 from jammy.utils.meta import stmap
 
 SKIP_TYPES = six.string_types
 
-__all__ = ["as_tensor", "as_numpy", "as_float", "as_cuda", "as_cpu", "as_detached"]
+__all__ = [
+    "as_tensor",
+    "as_numpy",
+    "as_float",
+    "as_cuda",
+    "as_cpu",
+    "as_detached",
+    "is_master",
+]
 
 
 def _as_tensor(o):
@@ -101,3 +109,7 @@ def _as_detached(o, clone=False):
 
 def as_detached(obj, clone=False):
     return stmap(functools.partial(_as_detached, clone=clone), obj)
+
+
+def is_master():
+    return not dist.is_initialized() or dist.get_rank() == 0

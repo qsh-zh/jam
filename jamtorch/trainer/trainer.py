@@ -9,13 +9,13 @@ from jammy.cli.cmdline_viz import CmdLineViz
 from jammy.event import SimpleEventRegistry
 from jammy.logging import get_logger
 from jammy.utils.enum import JamEnum
-from jammy.utils.meter import AverageMeter, GroupMeters
+from jammy.utils.meter import AverageMeter
 from jamtorch.utils.meta import as_float
 
 from .monitor import group_prefix
 from .trainer_monitor import TrainerMonitor
 from .utils import *
-from .hydra_utils import *
+from jammy.utils.hyd import *
 
 logger = get_logger()
 

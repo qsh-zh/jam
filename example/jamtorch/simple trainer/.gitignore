@@ -1,0 +1,7 @@
+*.png
+*.jpg
+data/
+wandb/
+*.pth.tar
+*.patch
+outputs/

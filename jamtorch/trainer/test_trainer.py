@@ -1,9 +1,12 @@
 from .trainer import Trainer
 from jamtorch.io import EMA
 import torch.nn as nn
+import os
+import torch.distributed as dist
 
 try:
     from apex import amp
+    from apex.parallel import DistributedDataParallel
 
     APEX_AVAILABLE = True
 except:
@@ -12,7 +15,7 @@ except:
 __all__ = ["CfgTrainer"]
 
 
-class CfgTrainer(Trainer):
+class TestTrainer(Trainer):
     def load_env(self, cfg):
         super().load_env(cfg)
         is_ema = cfg.get("ema") or False
@@ -27,7 +30,7 @@ class CfgTrainer(Trainer):
                 # if cfg from checkpoint
                 self.ema.load_dict(cfg.get("ema_state"))
         else:
-            self.ema = None
+            self.ema = False
         self.load_fp16(cfg)
 
     def load_fp16(self, cfg):
@@ -46,6 +49,71 @@ class CfgTrainer(Trainer):
                     self.model, self.optimizer, opt_level="O1"
                 )
 
+    def apex_parallel(self, cfg):
+        if "WORLD_SIZE" in os.environ:
+            cfg.ddp = int(os.environ["WORLD_SIZE"]) > 1
+        self.ddp = bool(cfg.get("ddp") or False)
+        if self.ddp:
+            self.world_size = int(os.environ["WORLD_SIZE"])
+            torch.cuda.set_device(cfg.local_rank)
+            torch.distributed.init_process_group(backend="nccl", init_method="env://")
+        cudnn_bm = cfg.get("cudnn_bm") or False
+        if "cudnn_bm" in cfg:
+            torch.backends.cudnn.benchmark = cfg.get("cudnn_bm")
+
+        if self.ddp:
+            self.model = DistributedDataParallel(model, delay_allreduce=True)
+
+    # TODO: update a smart verion
+    def reduce_tensor_iter(self, iter_dict):
+        pass
+
+    def reduce_tensor(self, tensor):
+        rt = tensor.clone()
+        dist.all_reduce(rt, op=dist.reduce_op.SUM)
+        rt /= self.world_size
+        return rt
+
+    def _train_step_after(self, loss, monitors, cmdviz_dict):
+        if not self.ddp:
+            return super()._train_step_after(loss, monitors, cmdviz_dict)
+
+        self.trigger_event("step:after", self)
+
+        loss_f = as_float(self.reduce_tensor(loss))
+        monitors_f = as_float(self.reduce_tensor_iter(monitors))
+        cmdviz_f = as_float(self.reduce_tensor_iter(cmdviz_dict))
+
+        cmdviz_f.update({"loss": loss_f})
+        monitors_f.update(cmdviz_f)
+
+        self.cur_monitor.update(group_prefix("train", monitors_f))
+        self.cmdviz.update("train", cmdviz_f)
+        return loss_f
+
+    # TODO: update me
+    def val_loss_ckpt(self, val_loss):
+        is_best = val_loss < self.best_loss
+        self.best_loss = min(val_loss, self.best_loss)
+        if self.checkpoint_dir is not None:
+            state = checkpoint_state(self.model, self.optimizer)
+            state["env"] = self.export_env()
+
+            # FIXME: CHECK IT
+            save_checkpoint(
+                state,
+                is_best,
+                osp.join(self.checkpoint_dir, "checkpoint"),
+            )
+
+    # TODO: update me, should adjust the API
+    def eval_impl(self, data_loader, **kwargs):
+        pass
+
+    # TODO: should update epoch:start trigger, it should be desing as a call_list, auto stack it
+    train_sampler
+
+    # TODO: update ddp env
     def export_env(self):
         basic_state = super().export_env()
         new_state = {

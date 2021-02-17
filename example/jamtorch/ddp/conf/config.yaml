@@ -1,0 +1,42 @@
+data:
+  dataset:
+    _target_: datasets.cifar.get_dataset
+  dataloader:
+    _taraget_: jamtorch.ddp_trainer.ddp_utils.ddp_dataset
+    batch_size: 8
+    num_workers: 0
+optimizer:
+ _target_: torch.optim.SGD
+ lr: 1-3
+
+trainer:
+  rank: 
+  gpu: 
+  cwd: 
+  world_size: 
+    
+  dist:
+    master_addr: 'localhost'
+    master_port: '12355'
+    mode: 'nccl'
+    syncBN: false
+
+  resume: false
+  ckpt: 
+  ckpt_dir:
+  epochs: 14
+  ema: 
+    ema_beta: 0.5
+    ema_num_warm: 5
+    ema_num_every: 7
+
+  wandb:
+    log: false
+    project: "jammy"
+    name: "ddp"
+    tags:
+      - "jamtorch"
+      - "ddp_trainer"
+    notes:
+      "test the performance of ddp"
+    entity: "qinsheng"
