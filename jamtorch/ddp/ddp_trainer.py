@@ -7,16 +7,18 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from jamtorch.utils.meta import is_master
 import jammy.utils.hyd as hyd
 import jamtorch.trainer.progress_fn as progress_fn
+from jamtorch.io import hyd_ema
 
 class DDPTrainer(GeneticTrainer):
     def __init__(self, cfg, loss_fn):
         super().__init__(cfg, loss_fn)
         self.train_sampler, self.val_sampler = None, None
         self.is_master = is_master()
-        self.rank = 0 if self.is_master() else dist.get_rank()
+        self.rank = 0 if self.is_master else dist.get_rank()
         self.setup_ddp()
+        self.ema=None
         if self.is_master:
-            self.ema = hyd.hyd_instantiate(cfg.ema)
+            self.ema = hyd_ema(cfg)
         if self.ema:
             def update_ema(trainer):
                 trainer.ema.update_parameters(trainer.model)
@@ -29,14 +31,14 @@ class DDPTrainer(GeneticTrainer):
         if self._cfg.dist.syncBN:
             model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model).to(self.device)
         model = DDP(model, device_ids=[self.rank])
-        optimizer = hyd_instantiate(optimizer_cfg, self.model.parameters())
+        optimizer = hyd_instantiate(optimizer_cfg, model.parameters())
         return super().set_model_optim(model, optimizer=optimizer)
 
     def set_sampler(self, train_sampler, val_sampler):
         self.train_sampler, self.val_sampler = train_sampler, val_sampler
 
     def setup_ddp(self):
-        self.register_event("epoch:before", lambda trainer:trainer.train_sampler.set_epoch(self.epoch_cnt))
+        self.register_event("epoch:before", lambda trainer:trainer.train_sampler.set_epoch(self.epoch_cnt),False)
         if self.is_master:
             progress_fn.simple_train_bar(self)
             progress_fn.simple_val_bar(self)

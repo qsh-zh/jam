@@ -3,6 +3,7 @@ import os.path as osp
 import hydra
 import inspect
 from functools import partial, update_wrapper
+import jammy.utils.imp as imp
 
 __all__ = ["hydpath"]
 

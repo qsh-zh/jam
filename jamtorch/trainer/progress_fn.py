@@ -3,15 +3,20 @@ import sys
 from jammy.utils.meter import AverageMeter
 from jamtorch.utils.meta import as_float
 from tqdm.auto import tqdm
-
+from jammy.cli.cmdline_viz import CmdLineViz
 from .monitor import group_prefix
 
 __all__ = [
+    "set_monitor_viz",
     "train_bar_init", "batch_bar_update", "epoch_bar_update", "batch_bar_new",\
     "bar_close", "simple_step_summary",\
     "val_start", "val_step", "val_end",\
     "simple_train_bar", "simple_val_bar"
 ]
+
+def set_monitor_viz(trainer):
+    trainer.cur_monitor = {}
+    trainer.cmdviz = CmdLineViz()
 
 def train_bar_init(trainer):
     trainer.num_batch = len(trainer.train_loader)
@@ -64,6 +69,7 @@ def val_end(trainer):
     trainer.cur_monitor.update(group_prefix("eval",  trainer.cmdviz.meter["eval"].avg))
     trainer.val_bar.close()
     trainer.save_ckpt(val_loss)
+    trainer.cmdviz.flush()
 
 
 def simple_step_summary(trainer, loss, monitors, cmdviz_dict):
@@ -80,6 +86,7 @@ def simple_step_summary(trainer, loss, monitors, cmdviz_dict):
 
 
 def simple_train_bar(trainer):
+    trainer.register_event("epoch:start", set_monitor_viz, False)
     trainer.register_event("epoch:start", train_bar_init, False)
     trainer.register_event("step:end", batch_bar_update, False)
     trainer.register_event("epoch:after", batch_bar_new, False)
@@ -89,6 +96,7 @@ def simple_train_bar(trainer):
     trainer.register_event("step:summary", simple_step_summary, False)
 
 def simple_val_bar(trainer):
+    trainer.register_event("epoch:start", set_monitor_viz, False)
     trainer.register_event("val:start", val_start, False)
     trainer.register_event("val:step", val_step, False)
     trainer.register_event("val:end", val_end, False)
