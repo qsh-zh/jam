@@ -1,9 +1,8 @@
+from jammy.cli.cmdline_viz import CmdLineViz
+
 from .genetic_trainer import GeneticTrainer
 from .progress_fn import *
-from jammy.cli.cmdline_viz import CmdLineViz
 from .trainer_monitor import TrainerMonitor
-from jamtorch.io import attr_dict, save_ckpt,load_ckpt
-import os.path as osp
 
 
 class SimpleTrainer(GeneticTrainer):
@@ -39,10 +38,6 @@ class SimpleTrainer(GeneticTrainer):
                 }
             )
         self.cur_monitor = dict()
-
-    def eval(self):
-        super().eval()
-        self.cmdviz.flush()
 
     def set_monitor(self, is_wandb, tblogger=False):
         """
