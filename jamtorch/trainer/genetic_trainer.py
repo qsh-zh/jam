@@ -114,7 +114,7 @@ class GeneticTrainer:
 
     def _impl_load_ckpt(self, state):
         self.model.load_state_dict(state["model"])
-        self.model.load_state_dict(state["optimizer"])
+        self.optimizer.load_state_dict(state["optimizer"])
 
     def save_ckpt(self, val_loss=float("inf")):
         is_best = val_loss < self.best_loss

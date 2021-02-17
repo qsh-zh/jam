@@ -28,11 +28,12 @@ class DDPTrainer(GeneticTrainer):
     def set_model_optim(self, model, optimizer_cfg):
         assert isinstance(optimizer_cfg, DictConfig)
         model = model.to(self.device)
+        super().set_model_optim(model, optimizer=None)
         if self._cfg.dist.syncBN:
             model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model).to(self.device)
         model = DDP(model, device_ids=[self.rank])
         optimizer = hyd_instantiate(optimizer_cfg, model.parameters())
-        return super().set_model_optim(model, optimizer=optimizer)
+        self.model, self.optimizer = model, optimizer
 
     def set_sampler(self, train_sampler, val_sampler):
         self.train_sampler, self.val_sampler = train_sampler, val_sampler
@@ -46,7 +47,9 @@ class DDPTrainer(GeneticTrainer):
     def _impl_load_ckpt(self, state):
         if self.ema:
             self.ema.load_dict(state["ema"])
-        super()._impl_load_ckpt(state)
+        # The creatation of optimizer needs wait after model
+        self.model.load_state_dict(state["model"])
+
         dist.barrier()
     
     def save_ckpt(self,val_loss=float("inf")):
