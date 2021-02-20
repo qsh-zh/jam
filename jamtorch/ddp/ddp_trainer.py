@@ -9,6 +9,11 @@ import jammy.utils.hyd as hyd
 import jamtorch.trainer.progress_fn as progress_fn
 from jamtorch.io import hyd_ema
 
+from jamtorch.logging import get_logger
+
+logger = get_logger()
+
+
 class DDPTrainer(GeneticTrainer):
     def __init__(self, cfg, loss_fn):
         super().__init__(cfg, loss_fn)
@@ -48,10 +53,11 @@ class DDPTrainer(GeneticTrainer):
         if self.ema:
             self.ema.load_dict(state["ema"])
         # The creatation of optimizer needs wait after model
-        self.model.load_state_dict(state["model"])
+        msg_model = self.model.load_state_dict(state["model"])
+        logger.critical(f"load model ckpt {msg_model}")
 
         dist.barrier()
-    
+
     def save_ckpt(self,val_loss=float("inf")):
         if self.is_master:
             return super().save_ckpt(val_loss)
