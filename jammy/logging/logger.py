@@ -1,3 +1,4 @@
+import os
 import sys
 from loguru import logger
 
@@ -16,6 +17,8 @@ def get_logger(file_name=None, **kwargs):
     if file_name in logger_sink.values():
         logger.debug(f"{file_name} already registered")
     else:
+        # if "level" not in kwargs:
+        # kwargs["level"] = "DEBUG" if jam_is_debug() else "INFO"
         sink_id = logger.add(file_name, **kwargs)
         logger_sink[sink_id] = file_name
     return logger

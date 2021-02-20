@@ -4,13 +4,14 @@ from torch.utils.data import DataLoader
 from omegaconf import DictConfig, OmegaConf
 from jammy.event import SimpleEventRegistry
 from jammy.utils.enum import JamEnum
-from jamtorch.io import attr_dict, save_ckpt,load_ckpt
+from jamtorch.io import attr_dict, save_ckpt, load_ckpt
 import os.path as osp
 from jamtorch.logging import get_logger
 
 logger = get_logger()
 
 __all__ = ["EvalState", "GeneticTrainer"]
+
 
 class EvalState(JamEnum):
     NO = 1
@@ -27,6 +28,7 @@ class GeneticTrainer:
         self.val_loader = None
         self.model = None
         self.optimizer = None
+        self.lr_scheduler = None
         self.loss_fn = loss_fn
 
         self.epoch_cnt = 0
@@ -40,7 +42,6 @@ class GeneticTrainer:
         self.eval_iter = cfg.get("eval_iter") or -1
         if "gpu" in self._cfg:
             self.device = cfg["gpu"]
-
 
         self._event_manager = SimpleEventRegistry(
             {
@@ -98,7 +99,7 @@ class GeneticTrainer:
 
     def export_env(self):
         states = {key: getattr(self, key) for key in self._states}
-        states["epoch_cnt"] +=1
+        states["epoch_cnt"] += 1
         return states
 
     def load_env(self, cfg):
@@ -162,9 +163,7 @@ class GeneticTrainer:
         self.trigger_event("val:start", self)
         with torch.no_grad():
             for _, batch in enumerate(self.val_loader):
-                loss, monitor, cmdviz_dict = self.loss_fn(
-                    self.model, batch, is_train=False
-                )
+                loss, monitor, cmdviz_dict = self.loss_fn(self, batch, is_train=False)
                 self.trigger_event("val:step", self, batch, loss, monitor, cmdviz_dict)
         self.trigger_event("val:end", self)
 
@@ -206,7 +205,7 @@ class GeneticTrainer:
 
     def train_step(self, feed_dict):
         self.trigger_event("forward:before", self, feed_dict)
-        loss, monitors, cmdviz_dict = self.loss_fn(self.model, feed_dict, is_train=True)
+        loss, monitors, cmdviz_dict = self.loss_fn(self, feed_dict, is_train=True)
         self.trigger_event(
             "forward:after", self, feed_dict, loss, monitors, cmdviz_dict
         )
@@ -236,3 +235,11 @@ class GeneticTrainer:
 
     def monitor_update(self):
         pass
+
+    def forward(self, *args, **kwargs):
+        if self.model is not None:
+            return self.model(*args, **kwargs)
+        return None
+
+    def __call__(self, *args, **kwargs):
+        return self.forward(*args, **kwargs)

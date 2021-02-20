@@ -2,8 +2,12 @@ from omegaconf import OmegaConf
 import os.path as osp
 import hydra
 import inspect
+import inspect
 from functools import partial, update_wrapper
 import jammy.utils.imp as imp
+from jammy.logging import get_logger
+
+logger = get_logger()
 
 __all__ = ["hydpath"]
 
@@ -34,6 +38,10 @@ def hyd_instantiate(cfg, *args, **kwargs):
     args and kwargs: other parameters needed to initialize network
     """
     if cfg is None:
+        stack = inspect.stack()[1]
+        logger.debug(
+            f"File {stack.filename} {stack.lineno}: {stack.function} creating None object"
+        )
         return None
     module = imp.load_class(cfg["_target_"])
     if "params" in cfg:
