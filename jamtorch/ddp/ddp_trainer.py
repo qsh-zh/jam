@@ -9,6 +9,7 @@ import jammy.utils.hyd as hyd
 import jamtorch.trainer.progress_fn as progress_fn
 from jamtorch.io import hyd_ema
 import os.path as osp
+import tempfile
 
 from jamtorch.logging import get_logger
 
@@ -46,13 +47,13 @@ class DDPTrainer(GeneticTrainer):
     def init_model(self):
         if self._cfg.resume:
             return
-        checkpoint_path = os.path.join(tempfile.gettempdir(), "initial_weights.pt")
+        checkpoint_path = osp.join(tempfile.gettempdir(), "initial_weights.pt")
         if self.is_master:
             torch.save(self.model.state_dict(), checkpoint_path)
 
         dist.barrier()
         self.model.load_state_dict(
-            torch.load(checkpoint_path), map_location=self.device
+            torch.load(checkpoint_path, map_location=self.device)
         )
 
     def set_sampler(self, train_sampler, val_sampler):
