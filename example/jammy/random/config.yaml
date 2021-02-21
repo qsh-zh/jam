@@ -1,0 +1,12 @@
+fn: 
+  _target_: fn.worker
+
+trainer:
+  rank:
+  gpu:
+  world_size:
+  dist:
+    master_addr: 'localhost'
+    master_port: '12355'
+    mode: 'nccl'
+    syncBN: false
