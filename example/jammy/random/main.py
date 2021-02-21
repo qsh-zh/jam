@@ -7,7 +7,7 @@ from jamtorch import ddp as ddp
 from jammy.random import reset_global_seed
 
 def run(rank, world_size, unknown, cfg):
-    reset_global_seed(None, True)
+    # reset_global_seed(None, True)
     fn = hyd.hyd_instantiate(cfg.fn)
     fn()
 

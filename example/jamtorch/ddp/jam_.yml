@@ -1,0 +1,3 @@
+system:
+  envs:
+    JAM_RANDOM_SEED: 8
