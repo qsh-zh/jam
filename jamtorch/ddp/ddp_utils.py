@@ -50,8 +50,9 @@ def ddp_runner(func):
     @functools.wraps(func)
     def new_fn(rank, n_gpu, working_dir, config):
         ddp_setup(rank, n_gpu, working_dir, config.trainer)
-        if "optimizer" in config:
-            config.optimizer.lr = config.optimizer.lr * config.trainer.world_size
+        if config.trainer.dist.adjust_lr:
+            if "optimizer" in config:
+                config.optimizer.lr = config.optimizer.lr * config.trainer.world_size
         value = func(config)
         cleanup()
         return value

@@ -37,7 +37,7 @@ class DDPTrainer(GeneticTrainer):
         assert isinstance(optimizer_cfg, DictConfig)
         model = model.to(self.device)
         super().set_model_optim(model, optimizer=None)
-        self.init_model()
+        # self.init_model()
         if self._cfg.dist.syncBN:
             model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model).to(self.device)
         model = DDP(model, device_ids=[self.rank])
