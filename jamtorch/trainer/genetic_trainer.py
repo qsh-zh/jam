@@ -94,12 +94,12 @@ class GeneticTrainer:
 
     def set_model_optim(self, model, optimizer=None):
         self.model, self.optimizer = model, optimizer
+        # resume will loss one epoch, it is acceptable
         if self._cfg.resume:
             self.load_ckpt(self._cfg.ckpt)
 
     def export_env(self):
         states = {key: getattr(self, key) for key in self._states}
-        states["epoch_cnt"] += 1
         return states
 
     def load_env(self, cfg):

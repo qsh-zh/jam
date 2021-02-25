@@ -25,7 +25,9 @@ class ParamEMA:
             return
         if self.shadow_params is None:
             logger.info("Ema finish the initialization")
-            self.shadow_params = [p.clone().detach().cpu() for p in new_model.parameters()]
+            self.shadow_params = [
+                p.clone().detach().cpu() for p in new_model.parameters()
+            ]
         with torch.no_grad():
             if self.cnt % self.num_every == 0:
                 for s_param, param in zip(self.shadow_params, new_model.parameters()):
@@ -35,7 +37,7 @@ class ParamEMA:
         if hasattr(model, "module"):
             model = model.module
         for s_param, param in zip(self.shadow_params, model.parameters()):
-            param.data.copy_(s_param.data)
+            param.data.copy_(s_param.to(param.device).data)
 
     def dump2dict(self):
         return {

@@ -2,7 +2,7 @@ import jammy
 import jammy.io as io
 
 
-parser = jammy.JamArgumentParser()
+parser = jammy.cli.JamArgumentParser()
 parser.add_argument("filename", nargs="+")
 args = parser.parse_args()
 
