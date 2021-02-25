@@ -24,11 +24,12 @@ class ParamEMA:
         if self.cnt < self.num_warm:
             return
         if self.shadow_params is None:
-            self.shadow_params = [p.clone().detach() for p in new_model.parameters()]
+            logger.info("Ema finish the initialization")
+            self.shadow_params = [p.clone().detach().cpu() for p in new_model.parameters()]
         with torch.no_grad():
             if self.cnt % self.num_every == 0:
                 for s_param, param in zip(self.shadow_params, new_model.parameters()):
-                    s_param.sub_(self.one_minus_decay * (s_param - param))
+                    s_param.sub_(self.one_minus_decay * (s_param - param.cpu()))
 
     def copy_to(self, model):
         if hasattr(model, "module"):
