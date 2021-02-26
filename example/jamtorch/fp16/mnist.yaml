@@ -4,8 +4,8 @@ no_cuda: False
 
 
 data:
-  batch_size: 5000
-  test_batch_size: 5000
+  batch_size: 500
+  test_batch_size: 500
 
 
 trainer:
@@ -13,7 +13,7 @@ trainer:
   ckpt: 
   ckptDir:
   epochs: 14
-  fp16: false
+  fp16: true
   ema: true
   ema_beta: 0.5
   ema_num_warm: 5

@@ -33,16 +33,16 @@ class DDPTrainer(GeneticTrainer):
 
             self.register_event("step:end", update_ema, False)
 
-    def set_model_optim(self, model, optimizer_cfg):
-        assert isinstance(optimizer_cfg, DictConfig)
-        model = model.to(self.device)
-        super().set_model_optim(model, optimizer=None)
-        # self.init_model()
+    def set_model_optim(self, model, optimizer):
+        # assert isinstance(optimizer_cfg, DictConfig)
+        if next(model.parameters()).device == torch.device("cpu"):
+            model = model.to(self.device)
         if self._cfg.dist.syncBN:
-            model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model).to(self.device)
+            model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
         model = DDP(model, device_ids=[self.rank])
-        optimizer = hyd_instantiate(optimizer_cfg, model.parameters())
-        self.model, self.optimizer = model, optimizer
+        # instantiate optmiizer after DDP model
+        # optimizer = hyd_instantiate(optimizer_cfg, model.parameters())
+        super().set_model_optim(model, optimizer)
 
     def init_model(self):
         if self._cfg.resume:
@@ -73,7 +73,7 @@ class DDPTrainer(GeneticTrainer):
         if self.ema:
             self.ema.load_dict(state["ema"])
         # The creatation of optimizer needs wait after model
-        msg_model = self.model.load_state_dict(state["model"])
+        msg_model = self.model.module.load_state_dict(state["model"])
         logger.critical(f"load model ckpt {msg_model}")
 
         dist.barrier()

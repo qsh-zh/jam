@@ -7,7 +7,7 @@ gamma: 0.7
 no_cuda: False
 
 trainer:
-  resume: True
+  resume: false
   ckpt: outputs/2021-02-07/01-45-44/checkpoint
   wandb: ${wandb}
 

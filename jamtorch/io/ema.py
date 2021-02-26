@@ -62,7 +62,8 @@ class EMA:
     def load_dict(self, ema_dict):
         self.cnt = ema_dict.get("cnt") or 0
         self.num_warm = ema_dict.get("num_warm") or 0
-        self._old_model.load_state_dict(ema_dict.get("model"))
+        if self._old_model is not None:
+            self._old_model.load_state_dict(ema_dict.get("model"))
         self.beta = ema_dict.get("beta") or 0.9
         self.num_every = ema_dict.get("num_every") or 1
         logger.critical("=====> Loading EMA finish =====>")

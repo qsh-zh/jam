@@ -7,7 +7,7 @@ from jammy.logging import get_logger
 
 logger = get_logger()
 
-__all__ = ["is_git", "git_rootdir"]
+__all__ = ["is_git", "git_rootdir", "git_hash"]
 
 
 def is_git(path):
@@ -25,3 +25,10 @@ def git_rootdir(path=""):
         return osp.join(root, path)
     logger.info("not a git repo")
     return osp.join(os.getcwd(), path)
+
+def git_hash(path):
+    if is_git(path):
+        git_repo = git.Repo(path, search_parent_directories=True)
+        return git_repo.head.object.hexsha
+    logger.info("not a git repo")
+        

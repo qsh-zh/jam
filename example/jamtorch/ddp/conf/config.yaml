@@ -7,7 +7,7 @@ data:
     num_workers: 0
 
 optimizer:
- _target_: torch.optim.SGD
+ _target_: torch.optim.Adam
  lr: 1e-3
 
 model:
@@ -20,14 +20,16 @@ trainer:
   world_size: 
   dist:
     master_addr: 'localhost'
-    master_port: '12355'
+    master_port: '12354'
     mode: 'nccl'
     syncBN: false
 
   resume: false
-  ckpt: 
+  ckpt: /home/qzhang419/jam/example/jamtorch/ddp/outputs/2021-02-25/20-25-32/ckpt-6250
   ckpt_dir:
   epochs: 3
+  ratio_forback: 1
+  fp16: true
   enable_ema: true
   ema: 
     _target_: jamtorch.io.EMA

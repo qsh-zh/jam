@@ -40,6 +40,7 @@ class GeneticTrainer:
         self._cfg = cfg
         self.eval_epoch = cfg.get("eval_epoch") or 1
         self.eval_iter = cfg.get("eval_iter") or -1
+        self.ratio_forback = cfg.get("ratio_forback") or 1
         if "gpu" in self._cfg:
             self.device = cfg["gpu"]
 
@@ -59,6 +60,8 @@ class GeneticTrainer:
                 "val:start",
                 "val:end",
                 "val:step",  # quite strange naming and design
+                "trainer:export",
+                "trainer:load",
             }
         )
 
@@ -110,8 +113,9 @@ class GeneticTrainer:
 
     def load_ckpt(self, filename="checkpoint"):
         state = load_ckpt(self.device, filename)
-        self._impl_load_ckpt(self, state)
+        self._impl_load_ckpt(state)
         self.load_env(state["env"])
+        self.trigger_event("trainer:load", self, state)
 
     def _impl_load_ckpt(self, state):
         msg_model = self.model.load_state_dict(state["model"])
@@ -127,6 +131,7 @@ class GeneticTrainer:
         ckpt_path = osp.join(self.ckpt_dir, f"ckpt-{self.iter_cnt}")
         best_path = osp.join(self.ckpt_dir, "best")
         state_dict.update(self._impl_save_ckpt())
+        self.trigger_event("trainer:export", self, state_dict)
         save_ckpt(state_dict, is_best, ckpt_path, best_path)
 
     def _impl_save_ckpt(self):
@@ -145,6 +150,9 @@ class GeneticTrainer:
 
         "val:start/end",(trainer)
         "val:step",(trainer, feed_dict, loss, monitors, cmdviz)
+
+        "trainer:export",(trainer, state_dict)
+        "trainer:load",(trainer, state)
         """
 
         if verbose:
@@ -183,6 +191,7 @@ class GeneticTrainer:
 
     def train(self):
         self.trigger_event("epoch:start", self)
+        self.optimizer.zero_grad()
         for self.epoch_cnt in range(self.epoch_cnt, self._cfg.epochs):
             self.trigger_event("epoch:before", self)
             for _, batch in enumerate(self.train_loader):
@@ -211,7 +220,6 @@ class GeneticTrainer:
         )
 
         if loss.requires_grad:
-            self.optimizer.zero_grad()
             self.trigger_event(
                 "backward:before", self, feed_dict, loss, monitors, cmdviz_dict
             )
@@ -221,6 +229,7 @@ class GeneticTrainer:
                     "backward:after", self, feed_dict, loss, monitors, cmdviz_dict
                 )
                 self.optimizer.step()
+                self.optimizer.zero_grad()
         self.trigger_event("step:summary", self, loss, monitors, cmdviz_dict)
 
     def _eval_iter(self):
@@ -231,7 +240,9 @@ class GeneticTrainer:
 
     def loss_backward(self, loss):
         loss.backward()
-        return True
+        if self.iter_cnt % self.ratio_forback == 0:
+            return True
+        return False
 
     def monitor_update(self):
         pass

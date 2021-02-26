@@ -79,8 +79,9 @@ def run(cfg):
     train_loader = torch.utils.data.DataLoader(dataset1, **train_kwcfg)
     test_loader = torch.utils.data.DataLoader(dataset2, **test_kwcfg)
 
-    model = Net().to(device)
+    model = Net()
     optimizer = optim.Adadelta(model.parameters(), lr=cfg.lr)
+    model.to(device)
 
     scheduler = StepLR(optimizer, step_size=1, gamma=cfg.gamma)
 

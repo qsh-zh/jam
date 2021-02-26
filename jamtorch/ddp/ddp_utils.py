@@ -3,10 +3,20 @@ import functools
 import os
 import datetime
 import torch
+from contextlib import nullcontext, contextmanager
 
 
 def is_master():
     return not dist.is_initialized() or dist.get_rank() == 0
+
+
+@contextmanager
+def master_first():
+    if not is_master():
+        dist.barrier()
+    yield
+    if dist.is_initialized() and is_master():
+        dist.barrier()
 
 
 def only_master(func):
@@ -81,3 +91,17 @@ def ddp_dataset(train_set, val_set, rank=None, world_size=None, **dl_kwargs):
         val_loader = None
 
     return train_loader, train_sampler, val_loader, val_sampler
+
+
+def fast_acc_grad_loss(trainer, loss):
+    is_step = trainer.iter_cnt % self.ratio_forback != 0
+    sync_context = (
+        trainer.model.no_sync if dist.is_initialized() and is_step else nullcontext
+    )
+    # avoid sync gradient
+    with sync_context:
+        loss.backward()
+    if is_step:
+        return True
+
+    return False

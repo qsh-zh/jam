@@ -5,9 +5,14 @@ import torch
 from omegaconf import OmegaConf
 import jamtorch.ddp.ddp_utils as ddp_utils
 from jamtorch.ddp.ddp_trainer import DDPTrainer
+from jamtorch.trainer.amp import fp16_wrapper
 import jammy.utils.hyd as hyd
 import torch.multiprocessing as mp
 from torch.multiprocessing import Process
+
+@fp16_wrapper
+class Trainer(DDPTrainer):
+    pass
 
 def loss_wrapper(device):
     def loss_fn(model, feed_dict, is_train):
@@ -27,8 +32,9 @@ def run(cfg):
             rank=cfg.trainer.rank, world_size=cfg.trainer.world_size)()
     model = hyd.hyd_instantiate(cfg.model)
     device = torch.device(f"cuda:{cfg.trainer.gpu}")
-    trainer = DDPTrainer(cfg.trainer, loss_wrapper(device))
-    trainer.set_model_optim(model, cfg.optimizer)
+    trainer = Trainer(cfg.trainer, loss_wrapper(device))
+    optimizer = hyd.hyd_instantiate(cfg.optimizer, model.parameters())
+    trainer.set_model_optim(model, optimizer)
     trainer.set_dataloader(train_loader, val_loader)
     trainer.set_sampler(train_sampler, val_sampler)
     trainer.train()
