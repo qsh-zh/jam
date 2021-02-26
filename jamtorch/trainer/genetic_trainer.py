@@ -8,6 +8,8 @@ from jamtorch.io import attr_dict, save_ckpt, load_ckpt
 import os.path as osp
 from jamtorch.logging import get_logger
 
+from . import trainer_fn
+
 logger = get_logger()
 
 __all__ = ["EvalState", "GeneticTrainer"]
@@ -64,6 +66,8 @@ class GeneticTrainer:
                 "trainer:load",
             }
         )
+        if cfg.clip_grad and cfg.clip_grad > 0:
+            trainer_fn.register_grad_clip(self, cfg.clip_grad)
 
     @property
     def device(self):

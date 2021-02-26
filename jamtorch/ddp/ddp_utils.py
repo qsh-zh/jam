@@ -1,5 +1,6 @@
 import torch.distributed as dist
 import functools
+import jammy.comm as comm
 import os
 import datetime
 import torch
@@ -8,6 +9,10 @@ from contextlib import nullcontext, contextmanager
 
 def is_master():
     return not dist.is_initialized() or dist.get_rank() == 0
+
+
+def is_dist():
+    return dist.is_initialized()
 
 
 @contextmanager
@@ -36,6 +41,7 @@ def ddp_setup(rank, world_size, working_dir, cfg):
     cfg.gpu = rank
     cfg.cwd = working_dir
     cfg.world_size = world_size
+
 
     os.environ["MASTER_ADDR"] = cfg.dist.master_addr
     os.environ["MASTER_PORT"] = cfg.dist.master_port
@@ -71,6 +77,21 @@ def ddp_runner(func):
 
 
 def ddp_dataset(train_set, val_set, rank=None, world_size=None, **dl_kwargs):
+    if not dist.is_initialized():
+        # no dist trainining
+        if train_set is not None:
+            train_loader = torch.utils.data.DataLoader(
+                train_set, shuffle=True, **dl_kwargs
+            )
+        else:
+            train_loader = None
+        if val_set is not None:
+            val_loader = torch.utils.data.DataLoader(val_set, shuffle=True, **dl_kwargs)
+        else:
+            val_loader = None
+
+        return train_loader, None, val_loader, None
+
     if train_set is not None:
         train_sampler = torch.utils.data.DistributedSampler(train_set, world_size, rank)
         train_loader = torch.utils.data.DataLoader(
@@ -94,7 +115,7 @@ def ddp_dataset(train_set, val_set, rank=None, world_size=None, **dl_kwargs):
 
 
 def fast_acc_grad_loss(trainer, loss):
-    is_step = trainer.iter_cnt % self.ratio_forback != 0
+    is_step = trainer.iter_cnt % trainer.ratio_forback != 0
     sync_context = (
         trainer.model.no_sync if dist.is_initialized() and is_step else nullcontext
     )
@@ -105,3 +126,7 @@ def fast_acc_grad_loss(trainer, loss):
         return True
 
     return False
+
+def prepare_trainer(cfg):
+    free_port = comm.find_free_port()
+    cfg.dist.master_port = str(free_port)

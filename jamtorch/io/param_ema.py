@@ -24,7 +24,7 @@ class ParamEMA:
         if self.cnt < self.num_warm:
             return
         if self.shadow_params is None:
-            logger.info("Ema finish the initialization")
+            logger.debug("Ema finish the initialization")
             self.shadow_params = [
                 p.clone().detach().cpu() for p in new_model.parameters()
             ]

@@ -31,4 +31,17 @@ def git_hash(path):
         git_repo = git.Repo(path, search_parent_directories=True)
         return git_repo.head.object.hexsha
     logger.info("not a git repo")
+    return None
         
+def git_repo(path):
+    if is_git(path):
+        git_repo = git.Repo(path, search_parent_directories=True)
+        return git_repo
+    logger.info("not a git repo")
+    return None
+
+def log_repo(path):
+    repo = git_repo(path)
+    if repo:
+        return repo.head.object.hexsha, repo.git.diff()
+    return None

@@ -6,3 +6,4 @@
 
 
 - [ ] be careful about amp fp16!
+- [ ] create a fake ddp_trainer, same api

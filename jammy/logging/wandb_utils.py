@@ -1,4 +1,5 @@
 from jammy.utils.naming import class_name_of_method
+import jammy.utils.git as git
 import shutil
 import os
 import subprocess
@@ -25,11 +26,15 @@ class WandbUrls:
         self.overview_url = "https://app.wandb.ai/{}/{}/runs/{}/overview".format(
             entity, project, hash
         )
-        self.hydra_config_url = "https://app.wandb.ai/{}/{}/runs/{}/files/hydra-config.yaml".format(
-            entity, project, hash
+        self.hydra_config_url = (
+            "https://app.wandb.ai/{}/{}/runs/{}/files/hydra-config.yaml".format(
+                entity, project, hash
+            )
         )
-        self.overrides_url = "https://app.wandb.ai/{}/{}/runs/{}/files/overrides.yaml".format(
-            entity, project, hash
+        self.overrides_url = (
+            "https://app.wandb.ai/{}/{}/runs/{}/files/overrides.yaml".format(
+                entity, project, hash
+            )
         )
 
     def __repr__(self):
@@ -39,15 +44,17 @@ class WandbUrls:
         msg += "=================================================================================================================================\n"
         return msg
 
+
 def flatten_dict(cfg):
     rtn = {}
-    for k,v in cfg.items():
+    for k, v in cfg.items():
         if isinstance(v, Mapping):
-            sub = {f"k/{sub_k}":sub_v for sub_k, sub_v in flatten_dict(v).items()}
+            sub = {f"k/{sub_k}": sub_v for sub_k, sub_v in flatten_dict(v).items()}
             rtn.update(sub)
         else:
-            rtn[k]=v
+            rtn[k] = v
     return rtn
+
 
 class Wandb:
     IS_ACTIVE = False
@@ -85,16 +92,10 @@ class Wandb:
             Wandb._set_to_wandb_args(wandb_args, cfg, "config")
             Wandb._set_to_wandb_args(wandb_args, cfg, "id")
 
-            try:
-                commit_sha = (
-                    subprocess.check_output(["git", "rev-parse", "HEAD"])
-                    .decode("ascii")
-                    .strip()
-                )
-                gitdiff = subprocess.check_output(["git", "diff"]).decode()
-            except BaseException:
-                commit_sha = "n/a"
-                gitdiff = ""
+            jam_sha, jam_diff = git.log_repo(__file__)
+            import __main__ as _main
+
+            project_sha, project_diff = git.log_repo(_main.__file__)
 
             all_cfg_dict = OmegaConf.to_container(g_cfg, resolve=True)
             if "wandb" in all_cfg_dict:
@@ -104,14 +105,18 @@ class Wandb:
                 "z": all_cfg_dict,
                 **config,
                 "run_path": os.getcwd(),
-                "commit": commit_sha,
+                "jam_sha": jam_sha,
+                "proj_sha": project_sha,
             }
 
             wandb.init(**wandb_args)
 
-            with open("change.patch", "w") as f:
-                f.write(gitdiff)
-            wandb.save(os.path.join(os.getcwd(), "change.patch"))
+            with open("jam_change.patch", "w") as f:
+                f.write(jam_diff)
+            with open("proj_change.patch", "w") as f:
+                f.write(project_diff)
+            wandb.save(os.path.join(os.getcwd(), "jam_change.patch"))
+            wandb.save(os.path.join(os.getcwd(), "proj_change.patch"))
 
             if is_hydra:
                 shutil.copyfile(
@@ -143,15 +148,18 @@ class Wandb:
         if not Wandb.IS_ACTIVE:
             return
         import wandb
+
         wandb.finish()
 
     @staticmethod
     def config(cfg):
         if not Wandb.IS_ACTIVE:
-            return 
+            return
         import wandb
-        if isinstance(cfg,dict):
+
+        if isinstance(cfg, dict):
             wandb.config.update(cfg)
         else:
             from omegaconf import OmegaConf
+
             wandb.config.update(OmegaConf.to_container(flatten_dict(cfg)))
