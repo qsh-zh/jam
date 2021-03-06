@@ -93,9 +93,13 @@ class Wandb:
             Wandb._set_to_wandb_args(wandb_args, cfg, "id")
 
             jam_sha, jam_diff = git.log_repo(__file__)
-            import __main__ as _main
-
-            project_sha, project_diff = git.log_repo(_main.__file__)
+            from jammy.utils.env import jam_getenv
+            if jam_getenv("run_path"):
+                proj_dir = jam_getenv("run_path")
+            else:
+                import __main__ as _main
+                proj_dir = _main.__file__
+            project_sha, project_diff = git.log_repo(proj_dir)
 
             all_cfg_dict = OmegaConf.to_container(g_cfg, resolve=True)
             if "wandb" in all_cfg_dict:

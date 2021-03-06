@@ -1,10 +1,13 @@
 import os
 import sys
 import resource
+import pathlib
 from jammy.utils.env import jam_getenv, jam_is_debug, jam_getenv
+from .meta import run_once
+
 
 def release_syslim():
-    if jam_getenv('SYSLIM', default='n', type='bool'):
+    if jam_getenv("SYSLIM", default="n", type="bool"):
         sys.setrecursionlimit(1000000)
         try:
             slim = 65536 * 1024
@@ -14,13 +17,14 @@ def release_syslim():
 
 
 def tune_opencv():
-    os.environ['OPENCV_OPENCL_RUNTIME'] = ''
+    os.environ["OPENCV_OPENCL_RUNTIME"] = ""
 
 
 def enable_ipdb():
     if jam_is_debug():
-        if jam_getenv('IMPORT_ALL', 'true', 'bool'):
+        if jam_getenv("IMPORT_ALL", "true", "bool"):
             from jammy.utils.debug import hook_exception_ipdb
+
             hook_exception_ipdb()
 
 
@@ -28,3 +32,10 @@ def init_main():
     release_syslim()
     tune_opencv()
     enable_ipdb()
+    main_path()
+
+
+@run_once
+def main_path():
+    os.environ["JAM_RUN_PATH"] = str(pathlib.Path().absolute())
+    return pathlib.Path().absolute()
