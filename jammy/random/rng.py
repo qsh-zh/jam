@@ -80,6 +80,8 @@ def gen_seed():
 
 
 def gen_rng(seed=None):
+    if seed is None:
+        seed = jam_rng_seed()
     return JamRandomState(seed)
 
 
