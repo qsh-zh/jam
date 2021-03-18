@@ -53,5 +53,9 @@ class ParamEMA:
         self.num_warm = ema_dict.get("num_warm") or 0
         self.num_every = ema_dict.get("num_every") or 1
         self.shadow_params = ema_dict.get("model") or []
+        if self.shadow_params:
+            self.shadow_params = [ param.cpu() for param in ema_dict.get("model")]
+            # for param in self.shadow_params:
+                # param.cpu()
         self.one_minus_decay = ema_dict.get("one_minus_decay") or 0.1
         logger.critical("=====> Loading EMA finish =====>")

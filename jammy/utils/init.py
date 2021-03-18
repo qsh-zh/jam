@@ -37,5 +37,6 @@ def init_main():
 
 @run_once
 def main_path():
-    os.environ["JAM_RUN_PATH"] = str(pathlib.Path().absolute())
-    return pathlib.Path().absolute()
+    if jam_getenv("run_path") is None:
+        os.environ["JAM_RUN_PATH"] = str(pathlib.Path().absolute())
+        return pathlib.Path().absolute()
