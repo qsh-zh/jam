@@ -32,7 +32,7 @@ def point_stat(data, coef_std=1, **kwargs):
         }
 
 
-def plotstd(mean, cov, x=None, color=None, ax=None, label=None):
+def plotstd(mean, cov, x=None, color=None, ax=None, label=None, markersize=6):
     if ax is None:
         fig, ax = plt.subplots(1, 1)
     if color is None:
@@ -43,7 +43,7 @@ def plotstd(mean, cov, x=None, color=None, ax=None, label=None):
     if x is None:
         x = np.arange(len(mean))
 
-    ax.plot(x, mean, "o", color=color, markersize=12)
+    ax.plot(x, mean, "o", color=color, markersize=markersize)
     ax.plot(x, mean, "-", color=color, label=label)
     ax.fill_between(x, mean - cov, mean + cov, color=color, alpha=0.2)
 

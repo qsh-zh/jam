@@ -37,7 +37,7 @@ class GeneticTrainer:
         self.iter_cnt = 0
         self.best_loss = float("inf")
         self.ckpt_dir = getattr(cfg, "ckpt_dir") or os.getcwd()
-        self._states = ["epoch_cnt", "iter_cnt", "best_loss", "ckpt_dir"]
+        self._states = ["epoch_cnt", "iter_cnt", "best_loss"]
 
         self._cfg = cfg
         self.eval_epoch = cfg.get("eval_epoch") or 1
