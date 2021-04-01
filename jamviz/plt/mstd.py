@@ -2,10 +2,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
 from collections import defaultdict
+from .color_list import jcolors
 
 __all__ = ["MstdDict", "mstd_plot", "plotstd"]
 
-color_list = ["blue", "orange", "green", "red", "purple", "cyan", "brown"]
+color_list = jcolors
 
 
 def MstdDict():
@@ -32,7 +33,7 @@ def point_stat(data, coef_std=1, **kwargs):
         }
 
 
-def plotstd(mean, cov, x=None, color=None, ax=None, label=None, markersize=6):
+def plotstd(mean, cov, x=None, color=None, ax=None, label=None, markersize=3):
     if ax is None:
         fig, ax = plt.subplots(1, 1)
     if color is None:
