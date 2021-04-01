@@ -165,6 +165,12 @@ class GeneticTrainer:
                     name, callback.__module__ + "." + callback.__name__
                 )
             )
+        else:
+            logger.debug(
+                "Register trainer event: name={}, callback={}.".format(
+                    name, callback.__module__ + "." + callback.__name__
+                )
+            )
         self._event_manager.register(name, callback)
 
     def trigger_event(self, name, *args, **kwargs):
