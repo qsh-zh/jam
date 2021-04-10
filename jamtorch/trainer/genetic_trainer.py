@@ -220,6 +220,7 @@ class GeneticTrainer:
                 self.monitor_update()
             self.trigger_event("epoch:after", self)
         self.trigger_event("epoch:end", self)
+        self.eval()
         return self.best_loss
 
     def train_step(self, feed_dict):
