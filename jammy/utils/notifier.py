@@ -22,7 +22,13 @@ class _Notifier:
                 logger.debug(f"miss {cur_key} in environment")
                 break
             setattr(self, cur_key, term)
-        self.address = f"{os.getlogin()}@{os.uname().nodename}"
+        try:
+            user = os.getlogin()
+        except:
+            user = "qzhang419"
+        self.address = f"{user}@{os.uname().nodename}"
+        self.user = user
+
         self.server = smtplib.SMTP(self.smtp_url, self.smtp_port)
         self.server.login(self.sender, self.smtp_key)
 
@@ -38,7 +44,7 @@ class _Notifier:
         try:
             msg = MIMEText(msg, "plain", "utf-8")
             msg["From"] = formataddr([f"NotifierEXP {self.address}", self.sender])
-            msg["To"] = formataddr([f"{os.getlogin()}", self.receiver])
+            msg["To"] = formataddr([f"{self.user}", self.receiver])
             if subject == None:
                 subject = "Update on EXP"
             msg["Subject"] = subject
@@ -52,7 +58,7 @@ class _Notifier:
             )
             return True
         except Exception as e:
-            logger.warn(str(e))
+            logger.warning(str(e))
             return False
 
         def __exit__(self):
