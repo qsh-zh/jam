@@ -13,8 +13,8 @@ def get_batch(data, size=10):
         return get_batch_loader(data)
     elif isinstance(data, torch.utils.data.Dataset):
         rng = gen_rng()
-        subset = torch.utils.data.Subset(data, rng.choice(len(data)), size=size)
+        subset = torch.utils.data.Subset(data, rng.choice(len(data), size=size))
         loader = torch.utils.data.DataLoader(subset, batch_size=size)
         return get_batch_loader(loader)
     else:
-        raise RuntimeError
+        raise RuntimeError(f"Type {type(data)} not supported")

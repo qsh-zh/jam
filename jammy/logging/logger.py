@@ -12,7 +12,8 @@ logger_sink = {}
 def get_logger(file_name=None, **kwargs):
     if file_name is None:
         file_name = sys.stderr
-        kwargs["level"] = "INFO"
+        if "level" not in kwargs:
+            kwargs["level"] = "INFO"
     global logger_sink
     if file_name in logger_sink.values():
         logger.debug(f"{file_name} already registered")
