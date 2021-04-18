@@ -42,6 +42,9 @@ def ddp_setup(rank, world_size, working_dir, cfg):
     cfg.cwd = working_dir
     cfg.world_size = world_size
 
+    # different random seed for different process
+    torch.manual_seed(rank)
+
 
     os.environ["MASTER_ADDR"] = cfg.dist.master_addr
     os.environ["MASTER_PORT"] = cfg.dist.master_port

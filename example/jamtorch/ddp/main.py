@@ -41,7 +41,7 @@ def run(cfg):
 
 @ddp_utils.ddp_runner
 def debug_random(cfg):
-    print(cfg.gpu, torch.randn(size=(10,)))
+    print(cfg.trainer.gpu, torch.randn(size=(3,)))
     torch.distributed.barrier()
 
 
