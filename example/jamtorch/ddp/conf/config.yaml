@@ -29,7 +29,7 @@ trainer:
   ckpt_dir:
   epochs: 3
   ratio_forback: 1
-  fp16: true
+  fp16: false
   enable_ema: true
   ema: 
     _target_: jamtorch.io.EMA

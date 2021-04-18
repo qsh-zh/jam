@@ -8,7 +8,7 @@ from jamtorch.ddp.ddp_trainer import DDPTrainer
 from jamtorch.trainer.amp import fp16_wrapper
 import jammy.utils.hyd as hyd
 import torch.multiprocessing as mp
-from torch.multiprocessing import Process
+# from torch.multiprocessing import Process
 
 @fp16_wrapper
 class Trainer(DDPTrainer):
@@ -39,6 +39,10 @@ def run(cfg):
     trainer.set_sampler(train_sampler, val_sampler)
     trainer.train()
 
+@ddp_utils.ddp_runner
+def debug_random(cfg):
+    print(cfg.gpu, torch.randn(size=(10,)))
+    torch.distributed.barrier()
 
 
 @hydra.main(config_path="conf/", config_name="config.yaml")
@@ -47,7 +51,8 @@ def main(cfg):
     OmegaConf.set_struct(cfg, False)
     world_size = torch.cuda.device_count()
     # world_size = 2
-    mp.spawn(run, args=(world_size, None, cfg), nprocs=world_size, join=True)
+    # mp.spawn(run, args=(world_size, None, cfg), nprocs=world_size, join=True)
+    mp.spawn(debug_random, args=(world_size, None, cfg), nprocs=world_size, join=True)
     # run(cfg)
     # Wandb.finish()
 
