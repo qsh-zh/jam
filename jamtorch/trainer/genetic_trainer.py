@@ -113,7 +113,8 @@ class GeneticTrainer:
         for key, value in cfg.items():
             if value is None:
                 continue
-            setattr(self, key, value)
+            if key in self._states:
+                setattr(self, key, value)
 
     def load_ckpt(self, filename="checkpoint"):
         state = load_ckpt(self.device, filename)
