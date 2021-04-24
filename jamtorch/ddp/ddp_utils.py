@@ -45,7 +45,6 @@ def ddp_setup(rank, world_size, working_dir, cfg):
     # different random seed for different process
     torch.manual_seed(rank)
 
-
     os.environ["MASTER_ADDR"] = cfg.dist.master_addr
     os.environ["MASTER_PORT"] = cfg.dist.master_port
     timeout_sec = 1800
@@ -129,6 +128,7 @@ def fast_acc_grad_loss(trainer, loss):
         return True
 
     return False
+
 
 def prepare_trainer(cfg):
     free_port = comm.find_free_port()

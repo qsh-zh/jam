@@ -39,6 +39,7 @@ __all__ = [
     "synchronized",
     "make_dummy_func",
     "Singleton",
+    "Gcfg",
 ]
 
 
@@ -276,3 +277,8 @@ class Singleton(type):
     def _locked_call(cls, *args, **kwargs):
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+
+
+class Gcfg(metaclass=Singleton):
+    def __init__(self, cfg):
+        self.cfg = cfg

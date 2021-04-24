@@ -137,6 +137,7 @@ class GeneticTrainer:
         best_path = osp.join(self.ckpt_dir, "best")
         state_dict.update(self._impl_save_ckpt())
         self.trigger_event("trainer:export", self, state_dict)
+
         save_ckpt(state_dict, is_best, ckpt_path, best_path)
 
     def _impl_save_ckpt(self):
@@ -240,8 +241,7 @@ class GeneticTrainer:
                 self.trigger_event(
                     "backward:after", self, feed_dict, loss, monitors, cmdviz_dict
                 )
-                self.optimizer.step()
-                self.optimizer.zero_grad()
+                self.optimizer_step()
         self.trigger_event("step:summary", self, loss, monitors, cmdviz_dict)
 
     def _eval_iter(self):
@@ -249,6 +249,10 @@ class GeneticTrainer:
 
     def _eval_epoch(self):
         self.eval()
+
+    def optimizer_step(self):
+        self.optimizer.step()
+        self.optimizer.zero_grad()
 
     def loss_backward(self, loss):
         loss.backward()
