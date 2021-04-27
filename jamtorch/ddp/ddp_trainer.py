@@ -7,7 +7,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from jamtorch.utils.meta import is_master
 import jammy.utils.hyd as hyd
 import jamtorch.trainer.progress_fn as progress_fn
-from jamtorch.io import hyd_ema
+from jamtorch.io import hyd_ema, attr_dict
 import os.path as osp
 import tempfile
 
@@ -91,4 +91,5 @@ class DDPTrainer(GeneticTrainer):
         rtn = {}
         if self.ema:
             rtn["ema"] = self.ema.dump2dict()
-        return {**super()._impl_save_ckpt(), **rtn}
+        super_ckpt = attr_dict(self, ["model", "amp_scaler"])
+        return {**super_ckpt, **rtn}
