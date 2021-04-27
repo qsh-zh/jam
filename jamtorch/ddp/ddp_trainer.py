@@ -78,7 +78,7 @@ class DDPTrainer(GeneticTrainer):
         # The creatation of optimizer needs wait after model
         msg_model = self.model.module.load_state_dict(state["model"])
         logger.critical(f"load model ckpt {msg_model}")
-        self.__impl_load_amp_scaler(state)
+        self._impl_load_amp_scaler(state)
 
         dist.barrier()
 

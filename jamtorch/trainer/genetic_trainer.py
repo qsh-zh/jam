@@ -129,9 +129,9 @@ class GeneticTrainer:
         logger.critical(f"load model ckpt {msg_model}")
         msg_optimizer = self.optimizer.load_state_dict(state["optimizer"])
         logger.critical(f"load optimizer ckpt {msg_optimizer}")
-        self.__impl_load_amp_scaler()
+        self._impl_load_amp_scaler()
 
-    def __impl_load_amp_scaler(self, state):
+    def _impl_load_amp_scaler(self, state):
         if self.use_amp:
             if "amp_scaler" in state:
                 self.amp_scaler.load_state_dict(state["amp_scaler"])
