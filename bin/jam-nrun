@@ -1,0 +1,6 @@
+#!/bin/bash -E
+
+JAMROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")"/../ && pwd)"
+
+export JAM_NSMG=true
+$JAMROOT/bin/jam-run "$@"
