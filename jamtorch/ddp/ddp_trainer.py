@@ -70,11 +70,15 @@ class DDPTrainer(GeneticTrainer):
             progress_fn.simple_val_bar(self)
 
     def _impl_load_ckpt(self, state):
+        """
+        only load model, bypass optimizer
+        """
         if self.ema:
             self.ema.load_dict(state["ema"])
         # The creatation of optimizer needs wait after model
         msg_model = self.model.module.load_state_dict(state["model"])
         logger.critical(f"load model ckpt {msg_model}")
+        self.__impl_load_amp_scaler(state)
 
         dist.barrier()
 

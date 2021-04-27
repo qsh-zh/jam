@@ -43,6 +43,8 @@ class GeneticTrainer:
         self.eval_epoch = cfg.get("eval_epoch") or 1
         self.eval_iter = cfg.get("eval_iter") or -1
         self.ratio_forback = cfg.get("ratio_forback") or 1
+        self.use_amp = cfg.get("use_amp") or False
+        self.amp_scaler = torch.cuda.amp.GradScaler(enabled=self.use_amp)
         if "gpu" in self._cfg:
             self.device = cfg["gpu"]
 
@@ -127,6 +129,14 @@ class GeneticTrainer:
         logger.critical(f"load model ckpt {msg_model}")
         msg_optimizer = self.optimizer.load_state_dict(state["optimizer"])
         logger.critical(f"load optimizer ckpt {msg_optimizer}")
+        self.__impl_load_amp_scaler()
+
+    def __impl_load_amp_scaler(self, state):
+        if self.use_amp:
+            if "amp_scaler" in state:
+                self.amp_scaler.load_state_dict(state["amp_scaler"])
+            else:
+                logger.critical("enabled amp but amp_scaler not found")
 
     def save_ckpt(self, val_loss=float("inf")):
         is_best = val_loss < self.best_loss
@@ -141,7 +151,7 @@ class GeneticTrainer:
         save_ckpt(state_dict, is_best, ckpt_path, best_path)
 
     def _impl_save_ckpt(self):
-        return attr_dict(self, ["model", "optimizer"])
+        return attr_dict(self, ["model", "optimizer", "amp_scaler"])
 
     def register_event(self, name, callback, verbose=True):
         """
@@ -183,7 +193,10 @@ class GeneticTrainer:
         self.trigger_event("val:start", self)
         with torch.no_grad():
             for _, batch in enumerate(self.val_loader):
-                loss, monitor, cmdviz_dict = self.loss_fn(self, batch, is_train=False)
+                with torch.cuda.amp.autocast(enabled=self.use_amp):
+                    loss, monitor, cmdviz_dict = self.loss_fn(
+                        self, batch, is_train=False
+                    )
                 self.trigger_event("val:step", self, batch, loss, monitor, cmdviz_dict)
         self.trigger_event("val:end", self)
 
@@ -227,7 +240,8 @@ class GeneticTrainer:
 
     def train_step(self, feed_dict):
         self.trigger_event("forward:before", self, feed_dict)
-        loss, monitors, cmdviz_dict = self.loss_fn(self, feed_dict, is_train=True)
+        with torch.cuda.amp.autocast(enabled=self.use_amp):
+            loss, monitors, cmdviz_dict = self.loss_fn(self, feed_dict, is_train=True)
         self.trigger_event(
             "forward:after", self, feed_dict, loss, monitors, cmdviz_dict
         )
@@ -251,12 +265,15 @@ class GeneticTrainer:
         self.eval()
 
     def optimizer_step(self):
-        self.optimizer.step()
+        self.amp_scaler.step(self.optimizer)
+        self.amp_scaler.update()
         self.optimizer.zero_grad()
 
     def loss_backward(self, loss):
-        loss.backward()
+        self.amp_scaler.scale(loss).backward()
         if self.iter_cnt % self.ratio_forback == 0:
+            # TODO: unscales the gradient
+            self.amp_scaler.unscale_(self.optimizer)
             return True
         return False
 
