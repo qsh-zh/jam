@@ -39,7 +39,7 @@ def hyd_instantiate(cfg, *args, **kwargs):
     """
     if cfg is None:
         stack = inspect.stack()[1]
-        logger.debug(
+        logger.info(
             f"File {stack.filename} {stack.lineno}: {stack.function} creating None object"
         )
         return None
