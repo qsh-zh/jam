@@ -4,7 +4,7 @@ from .meta import Singleton
 class Gcfg(metaclass=Singleton):
     def __init__(self, cfg):
         self.cfg = cfg
-        for key, value in cfg.__dict__():
+        for key, value in dict(cfg).items():
             self.__dict__[key] = value
 
 
