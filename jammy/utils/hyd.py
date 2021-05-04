@@ -12,7 +12,7 @@ logger = get_logger()
 __all__ = ["hydpath"]
 
 
-def hydpath(input_path=None):
+def path(input_path=None):
     if input_path is None or len(input_path) == 0:
         return hydra.utils.to_absolute_path(".")
     if input_path[0] == "/":
@@ -20,6 +20,10 @@ def hydpath(input_path=None):
     if input_path[0] == "~":
         return osp.expanduser(input_path)
     return hydra.utils.to_absolute_path(input_path)
+
+
+def hydpath(input_path=None):
+    return path(input_path)
 
 
 def hyd_instantiate(cfg, *args, **kwargs):
@@ -59,3 +63,24 @@ def hyd_instantiate(cfg, *args, **kwargs):
         return partial_fn
     else:
         raise RuntimeError(" only support function and class")
+
+
+def instantiate(cfg, *args, **kwargs):
+    """
+    A helper func helps instantiate from omegaconf(hydra) cfg
+
+    Args:
+        cfg: omegaconf.DictConfig, must contain `_target_` key word
+             if `param` or `params` present in the cfg, they are
+             high priority to initialize instance
+             otherwise, use cfg
+
+    Note:
+        when use the method pay attention to the parameters order
+
+    args and kwargs: other parameters needed to initialize network
+    """
+    instance_ = hyd_instantiate(cfg, *args, **kwargs)
+    if inspect.isfunction(instance_):
+        return instance_()
+    return instance_

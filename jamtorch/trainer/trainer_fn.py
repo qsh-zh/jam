@@ -1,6 +1,6 @@
 import torch
 
-__all__ = ["step_lr", "register_grad_clip"]
+__all__ = ["step_lr", "register_grad_clip", "trainer_save_cfg"]
 
 
 def step_lr(trainer, *args, **kwargs):
@@ -18,3 +18,10 @@ def register_grad_clip(trainer, grad_clip_value):
         torch.nn.utils.clip_grad_norm_(trainer.model.parameters(), grad_clip_value)
 
     trainer.register_event("backward:after", grad_clip_fn, False)
+
+
+def trainer_save_cfg(trainer, cfg):
+    def save_cfg(_trainer, state_dict):
+        state_dict["cfg"] = cfg
+
+    trainer.register_event("trainer:export", save_cfg)

@@ -129,7 +129,7 @@ class GeneticTrainer:
         logger.critical(f"load model ckpt {msg_model}")
         msg_optimizer = self.optimizer.load_state_dict(state["optimizer"])
         logger.critical(f"load optimizer ckpt {msg_optimizer}")
-        self._impl_load_amp_scaler()
+        self._impl_load_amp_scaler(state)
 
     def _impl_load_amp_scaler(self, state):
         if self.use_amp:
@@ -144,6 +144,7 @@ class GeneticTrainer:
         env_state = self.export_env()
         state_dict = {"env": env_state}
         ckpt_path = osp.join(self.ckpt_dir, f"ckpt-{self.iter_cnt}")
+        self.latest_ckpt = ckpt_path
         best_path = osp.join(self.ckpt_dir, "best")
         state_dict.update(self._impl_save_ckpt())
         self.trigger_event("trainer:export", self, state_dict)
