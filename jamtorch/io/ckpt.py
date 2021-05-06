@@ -8,7 +8,14 @@ from jammy.utils.printing import stprint
 import os.path as osp
 from jamtorch.logging import get_logger
 
-__all__ = ["state_dict", "attr_dict", "save_ckpt", "load_ckpt"]
+__all__ = [
+    "state_dict",
+    "attr_dict",
+    "save_ckpt",
+    "load_ckpt",
+    "aug_ckpt",
+    "resume_cfg",
+]
 
 logger = get_logger()
 
@@ -81,3 +88,20 @@ def aug_ckpt(ckpt, aug_dict, is_save=False, ckpt_file=None):
         torch.save(ckpt, ckpt_file)
 
     return ckpt
+
+
+def resume_cfg(cfg):
+    """resume cfg from ckpt"""
+    if cfg.trainer is not None:
+        n_cfg = cfg.trainer
+    else:
+        n_cfg = cfg
+
+    if n_cfg.resume and n_cfg.ckpt is not None:
+        ckpt_origin = n_cfg.ckpt
+        for pth_file in [ckpt_origin, f"{ckpt_origin}.pth", f"{ckpt_origin}.pth.tar"]:
+            if osp.isfile(pth_file):
+                break
+        ckpt = torch.load(pth_file, map_location=None)
+        cfg = ckpt["cfg"] if "cfg" in ckpt else cfg
+    return cfg
