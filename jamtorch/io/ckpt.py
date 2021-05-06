@@ -62,3 +62,22 @@ def load_ckpt(gpu=None, filename="checkpoint"):
     else:
         logger.critical("==> Checkpoint '{}' not found".format(filename))
         exit(0)
+
+
+def aug_ckpt(ckpt, aug_dict, is_save=False, ckpt_file=None):
+    """augment the checkpoint,
+    :returns: ckpt
+
+    """
+    if isinstance(ckpt, str):
+        ckpt = torch.load(ckpt, torch.device("cpu"))
+
+    assert isinstance(ckpt, dict)
+
+    ckpt.update(aug_dict)
+
+    if is_save:
+        assert ckpt_file is not None
+        torch.save(ckpt, ckpt_file)
+
+    return ckpt
