@@ -4,6 +4,8 @@ JAMROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")"/../ && pwd)"
 
 source $JAMROOT/bin/_jam-init.sh $JAMROOT
 
+echo "$@" >> .jam_cmds
+
 if [[ $1 == *.py ]]; then
     python3 "$@"
     if [ "$JAM_NSMG" = true ]; then

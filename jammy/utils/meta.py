@@ -278,6 +278,12 @@ class Singleton(type):
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
 
+    @property
+    def ready(cls):
+        if cls in cls._instances:
+            return True
+        return False
+
 
 class Gcfg(metaclass=Singleton):
     def __init__(self, cfg):
