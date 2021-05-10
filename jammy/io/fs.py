@@ -54,6 +54,7 @@ __all__ = [
     "lsdir",
     "remove",
     "locate_newest_file",
+    "move",
     "copy",
     "io_function_registry",
 ]
@@ -350,6 +351,10 @@ def copy(src, dst):
             _copy = shutil.copyfile
 
         _copy(src, dst)
+
+
+def move(src, dst):
+    return os.rename(src, dst)
 
 
 def locate_newest_file(dirname, pattern):
