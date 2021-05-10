@@ -1,4 +1,5 @@
 from .meta import Singleton
+from jammy.cli import timeout_input
 
 __all__ = ["Gcfg", "pub_cfg", "set_pub_cfg", "get_pub_cfg"]
 
@@ -23,3 +24,10 @@ def set_pub_cfg(cfg):
 
 def get_pub_cfg(cfg):
     return pub_cfg
+
+
+def assert_name(cfg, default="Default", strict=True):
+    if "name" not in cfg or cfg.name is None:
+        cfg.name = timeout_input("cfg.name", 10, default, strict)
+        return False
+    return True

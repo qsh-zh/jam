@@ -1,6 +1,14 @@
 from pathlib import Path
+import os
+import os.path as osp
+import errno
 
-__all__ = ["file_path"]
+__all__ = ["makedirs"]
 
-def file_path(cur_file):
-    pass
+
+def makedirs(path):
+    try:
+        os.makedirs(osp.expanduser(osp.normpath(path)))
+    except OSError as e:
+        if e.errno != errno.EEXIST and osp.isdir(path):
+            raise e

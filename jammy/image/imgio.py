@@ -11,12 +11,22 @@
 
 import os as os
 import os.path as osp
+import numpy as np
+import matplotlib.pyplot as plt
 
 from . import backend
 from .imgproc import dimshuffle
 
 
-__all__ = ["imread", "imwrite", "imshow", "fig2img", "imgstack", "savefig"]
+__all__ = [
+    "imread",
+    "imwrite",
+    "imshow",
+    "plt2pil",
+    "imgstack",
+    "savefig",
+    "imgs_in_row",
+]
 
 
 def imread(path, *, shuffle=False):
@@ -42,7 +52,7 @@ def imshow(title, img, *, shuffle=False):
     backend.imshow(title, img)
 
 
-def fig2img(fig):
+def plt2pil(fig):
     """Convert a Matplotlib figure to a PIL Image and return it"""
     import io
     from PIL import Image
@@ -63,21 +73,37 @@ def savefig(fig, fig_name):
     fig.savefig(fig_name)
 
 
-def imgstack(imgs):
+def imgstack(imgs, dpi=128):
     import matplotlib
     import matplotlib.pyplot as plt
 
-    img_size = imgs[0].size
-    resolution = 40
-
     num_img = len(imgs)
+    img_size = imgs[0].size
     with plt.style.context("img"):
         fig, axs = plt.subplots(
             num_img,
             1,
-            figsize=(1 * img_size[0] / resolution, num_img * img_size[1] / resolution),
+            figsize=(1 * img_size[0] / dpi, num_img * img_size[1] / dpi),
         )
         for cur_img, cur_ax in zip(imgs, axs):
             cur_ax.imshow(cur_img)
 
+    return fig
+
+
+def imgs_in_row(list_x, n, dpi=128, img_size=400):
+    """
+    args:
+    list_x: list of elements that imshow can display
+    n: number of the element in a row
+    """
+    length = len(list_x)
+    idxes = np.linspace(0, length - 1, n, dtype=int)
+    with plt.style.context("img"):
+        fig, axs = plt.subplots(
+            1, n, figsize=(n * img_size / dpi, img_size / dpi), dpi=dpi
+        )
+        for j, idx in enumerate(idxes):
+            axs[j].imshow(list_x[idx])
+            axs[j].set_title(idx)
     return fig

@@ -1,8 +1,9 @@
 import os
 import sys
+import select
 import os.path as osp
 
-__all__ = ["str2bool", "yn2bool", "yes_or_no", "maybe_mkdir"]
+__all__ = ["str2bool", "yn2bool", "yes_or_no", "maybe_mkdir", "timeout_input"]
 
 
 def str2bool(s):
@@ -85,3 +86,12 @@ def maybe_mkdir(dirname):
 
     if yes_or_no('Creating directory "{}"?'.format(dirname)):
         io.mkdir(dirname)
+
+
+def timeout_input(prompt, timeout=10, default="", strict=False):
+    print(prompt, end=": ", flush=True)
+    inputs, outputs, errors = select.select([sys.stdin], [], [], timeout)
+    print()
+    if not inputs and strict:
+        raise RuntimeError
+    return sys.stdin.readline().strip()
