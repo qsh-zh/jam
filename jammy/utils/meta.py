@@ -39,7 +39,6 @@ __all__ = [
     "synchronized",
     "make_dummy_func",
     "Singleton",
-    "Gcfg",
 ]
 
 
@@ -284,7 +283,6 @@ class Singleton(type):
             return True
         return False
 
-
-class Gcfg(metaclass=Singleton):
-    def __init__(self, cfg):
-        self.cfg = cfg
+    @classmethod
+    def clear(cls):
+        cls._instances.clear()

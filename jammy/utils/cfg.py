@@ -9,13 +9,16 @@ class Gcfg(metaclass=Singleton):
         assert "ready" not in cfg
         assert "cfg" not in cfg
         assert "reset" not in cfg
+        assert "clear" not in cfg
         self.cfg = cfg
         for key, value in dict(cfg).items():
             self.__dict__[key] = value
             setattr(Gcfg, key, value)
 
     @classmethod
-    def reset(cls, cfg):
+    def reset(cls, cfg=None):
+        if cfg is None:
+            cls._instances.clear()
         return Gcfg(cfg)
 
 

@@ -15,6 +15,7 @@ __all__ = [
     "load_ckpt",
     "aug_ckpt",
     "resume_cfg",
+    "set_ckpt",
 ]
 
 logger = get_logger()
@@ -30,6 +31,11 @@ def state_dict(obj):
         return obj.state_dict()
 
     raise RuntimeError
+
+
+def set_ckpt(src, des, atrs):
+    for atr in atrs:
+        setattr(des, atr, getattr(src, atr))
 
 
 def attr_dict(obj, key_list):
