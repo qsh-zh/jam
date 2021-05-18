@@ -133,10 +133,15 @@ class GeneticTrainer:
 
     def _impl_load_amp_scaler(self, state):
         if self.use_amp:
-            if "amp_scaler" in state:
-                self.amp_scaler.load_state_dict(state["amp_scaler"])
-            else:
-                logger.critical("enabled amp but amp_scaler not found")
+            try:
+                if "amp_scaler" in state and len(state["amp_scaler"]) == 0:
+                    self.amp_scaler.load_state_dict(state["amp_scaler"])
+                else:
+                    logger.critical("enabled amp but amp_scaler not found")
+            except Exception as e:
+                if hasattr(e, 'message'):
+                    print(e.message)
+                    raise RuntimeError
 
     def save_ckpt(self, val_loss=float("inf")):
         is_best = val_loss < self.best_loss
@@ -152,7 +157,9 @@ class GeneticTrainer:
         save_ckpt(state_dict, is_best, ckpt_path, best_path)
 
     def _impl_save_ckpt(self):
-        return attr_dict(self, ["model", "optimizer", "amp_scaler"])
+        if self.use_amp:
+            return attr_dict(self, ["model", "optimizer", "amp_scaler"])
+        return attr_dict(self, ["model", "optimizer"])
 
     def register_event(self, name, callback, verbose=True):
         """
