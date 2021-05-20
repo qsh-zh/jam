@@ -8,7 +8,7 @@ logger = get_logger()
 
 
 class ParamEMA:
-    def __init__(self, beta, num_warm, num_every):
+    def __init__(self, beta, num_warm, num_every, forget_resume=False):
         if beta < 0.0 or beta > 1.0:
             raise ValueError("beta must be between 0 and 1")
         self.one_minus_decay = 1 - beta
@@ -16,6 +16,7 @@ class ParamEMA:
         self.num_warm = num_warm
         self.num_every = num_every
         self.shadow_params = None
+        self.forget_resume = forget_resume
 
     def update_parameters(self, new_model):
         if hasattr(new_model, "module"):
@@ -52,10 +53,13 @@ class ParamEMA:
         self.cnt = ema_dict.get("cnt") or 0
         self.num_warm = ema_dict.get("num_warm") or 0
         self.num_every = ema_dict.get("num_every") or 1
-        self.shadow_params = ema_dict.get("model") or []
-        if self.shadow_params:
-            self.shadow_params = [ param.cpu() for param in ema_dict.get("model")]
+        if not self.forget_resume:
+            self.shadow_params = ema_dict.get("model") or []
+            if self.shadow_params:
+                self.shadow_params = [param.cpu() for param in ema_dict.get("model")]
             # for param in self.shadow_params:
-                # param.cpu()
+            # param.cpu()
         self.one_minus_decay = ema_dict.get("one_minus_decay") or 0.1
-        logger.critical("=====> Loading EMA finish =====>")
+        logger.critical(
+            f"=====> Loading EMA finish =====> with forget_resume: {self.forget_resume}"
+        )
