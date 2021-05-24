@@ -73,8 +73,9 @@ class DDPTrainer(GeneticTrainer):
         """
         only load model, bypass optimizer
         """
-        if self.ema:
-            self.ema.load_dict(state["ema"])
+        if self.ema and "ema" in state:
+            if state["ema"]:
+                self.ema.load_dict(state["ema"])
         # The creatation of optimizer needs wait after model
         msg_model = self.model.module.load_state_dict(state["model"])
         logger.critical(f"load model ckpt {msg_model}")
