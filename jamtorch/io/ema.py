@@ -17,6 +17,7 @@ class EMA:
         if isinstance(model, nn.DataParallel):
             model = model.module
         self._old_model = copy.deepcopy(model)
+        self.forget_resume = forget_resume
 
     def forward(self, *args, **kwargs):
         return self._old_model(*args, **kwargs)
