@@ -7,7 +7,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from jamtorch.utils.meta import is_master
 import jammy.utils.hyd as hyd
 import jamtorch.trainer.progress_fn as progress_fn
-from jamtorch.io import hyd_ema, attr_dict
+from jamtorch.io import attr_dict
 import os.path as osp
 import tempfile
 
@@ -23,15 +23,6 @@ class DDPTrainer(GeneticTrainer):
         self.is_master = is_master()
         self.rank = 0 if self.is_master else dist.get_rank()
         self.setup_ddp()
-        self.ema = None
-        if self.is_master:
-            self.ema = hyd_ema(cfg)
-        if self.ema:
-
-            def update_ema(trainer):
-                trainer.ema.update_parameters(trainer.model)
-
-            self.register_event("step:end", update_ema, False)
 
     def set_model_optim(self, model, optimizer):
         # assert isinstance(optimizer_cfg, DictConfig)
@@ -73,9 +64,6 @@ class DDPTrainer(GeneticTrainer):
         """
         only load model, bypass optimizer
         """
-        if self.ema and "ema" in state:
-            if state["ema"]:
-                self.ema.load_dict(state["ema"])
         # The creatation of optimizer needs wait after model
         msg_model = self.model.module.load_state_dict(state["model"])
         logger.critical(f"load model ckpt {msg_model}")
@@ -89,8 +77,5 @@ class DDPTrainer(GeneticTrainer):
         return
 
     def _impl_save_ckpt(self):
-        rtn = {}
-        if self.ema:
-            rtn["ema"] = self.ema.dump2dict()
         super_ckpt = attr_dict(self, ["model", "amp_scaler"])
-        return {**super_ckpt, **rtn}
+        return super_ckpt

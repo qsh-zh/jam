@@ -40,7 +40,7 @@ class ParamEMA:
         for s_param, param in zip(self.shadow_params, model.parameters()):
             param.data.copy_(s_param.to(param.device).data)
 
-    def dump2dict(self):
+    def state_dict(self):
         return {
             "one_minus_decay": self.one_minus_decay,
             "model": self.shadow_params,
@@ -49,7 +49,7 @@ class ParamEMA:
             "cnt": self.cnt,
         }
 
-    def load_dict(self, ema_dict):
+    def load_state_dict(self, ema_dict):
         self.cnt = ema_dict.get("cnt") or 0
         self.num_warm = ema_dict.get("num_warm") or 0
         self.num_every = ema_dict.get("num_every") or 1

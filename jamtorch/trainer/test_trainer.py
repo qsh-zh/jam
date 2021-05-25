@@ -28,7 +28,7 @@ class TestTrainer(Trainer):
             )
             if cfg.get("ema_state") is not None:
                 # if cfg from checkpoint
-                self.ema.load_dict(cfg.get("ema_state"))
+                self.ema.load_state_dict(cfg.get("ema_state"))
         else:
             self.ema = False
         self.load_fp16(cfg)
@@ -121,7 +121,7 @@ class TestTrainer(Trainer):
             "ema_beta": self.ema.beta if self.ema else 0.9,
             "ema_num_warm": self.ema.num_warm if self.ema else 1,
             "ema_num_every": self.ema.num_every if self.ema else 1,
-            "ema_state": self.ema.dump2dict() if self.ema else None,
+            "ema_state": self.ema.state_dict() if self.ema else None,
             "fp16": self.fp16,
         }
         return {**basic_state, **new_state}
