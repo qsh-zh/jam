@@ -1,7 +1,7 @@
 from .ddp_trainer import DDPTrainer
 from .fns import setup_ema
 
-def EMATrainer(DDPTrainer):
+class EMATrainer(DDPTrainer):
     def __init__(self, cfg, loss_fn):
         super().__init__(cfg, loss_fn)
         setup_ema(cfg, self)
