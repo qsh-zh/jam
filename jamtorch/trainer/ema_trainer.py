@@ -13,11 +13,11 @@ class EmaTrainer(GeneticTrainer):
 
     def _impl_load_ckpt(self, state):
         if self.ema:
-            self.ema.load_dict(state["ema"])
+            self.ema.load_state_dict(state["ema"])
         return super()._impl_load_ckpt(state)
 
     def _impl_save_ckpt(self):
         rtn = {}
         if self.ema:
-            rtn["ema"] = self.ema.dump2dict()
+            rtn["ema"] = self.ema.state_dict()
         return {**super()._impl_save_ckpt(), **rtn}

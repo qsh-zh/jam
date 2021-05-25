@@ -53,7 +53,7 @@ class EMA:
             model = model.module
         self._old_model = copy.deepcopy(model)
 
-    def dump2dict(self):
+    def state_dict(self):
         return {
             "cnt": self.cnt,
             "model": self._old_model.state_dict(),
@@ -62,10 +62,13 @@ class EMA:
             "beta": self.beta,
         }
 
-    def load_dict(self, ema_dict):
+    def copy_to(self, model):
+        pass
+
+    def load_state_dict(self, ema_dict):
         self.cnt = ema_dict.get("cnt") or 0
         self.num_warm = ema_dict.get("num_warm") or 0
-        if self.forget_resume:
+        if not self.forget_resume:
             if self._old_model is not None and ema_dict.get("model") is not None:
                 self._old_model.load_state_dict(ema_dict.get("model"))
         self.beta = ema_dict.get("beta") or 0.9
