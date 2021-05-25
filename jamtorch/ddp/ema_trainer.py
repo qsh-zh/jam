@@ -8,7 +8,8 @@ def EMATrainer(DDPTrainer):
 
     def _impl_load_ckpt(self, state):
         if self.ema and "ema" in state:
-            self.ema.load_state_dict(state["ema"])
+            if state["ema"]:
+                self.ema.load_state_dict(state["ema"])
         super()._impl_load_ckpt(state)
 
     def _impl_save_ckpt(self):
