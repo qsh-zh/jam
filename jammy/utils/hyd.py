@@ -83,4 +83,6 @@ def instantiate(cfg, *args, **kwargs):
     instance_ = hyd_instantiate(cfg, *args, **kwargs)
     if inspect.isfunction(instance_):
         return instance_()
+    elif isinstance(instance_, partial):
+        return instance_()
     return instance_
