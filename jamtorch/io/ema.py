@@ -63,7 +63,7 @@ class EMA:
         }
 
     def copy_to(self, model):
-        pass
+        return self._old_model
 
     def load_state_dict(self, ema_dict):
         self.cnt = ema_dict.get("cnt") or 0

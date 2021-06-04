@@ -8,7 +8,7 @@ logger = get_logger()
 
 
 class ParamEMA:
-    def __init__(self, beta, num_warm, num_every, forget_resume=False):
+    def __init__(self, beta, num_warm, num_every, model, forget_resume=False):
         if beta < 0.0 or beta > 1.0:
             raise ValueError("beta must be between 0 and 1")
         self.one_minus_decay = 1 - beta
@@ -39,6 +39,7 @@ class ParamEMA:
             model = model.module
         for s_param, param in zip(self.shadow_params, model.parameters()):
             param.data.copy_(s_param.to(param.device).data)
+        return model
 
     def state_dict(self):
         return {

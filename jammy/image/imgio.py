@@ -23,9 +23,10 @@ __all__ = [
     "imwrite",
     "imshow",
     "plt2pil",
+    "plt2ndimg",
     "imgstack",
     "savefig",
-    "imgs_in_row",
+    "ndimgs_in_row",
 ]
 
 
@@ -63,6 +64,8 @@ def plt2pil(fig):
     img = Image.open(buf)
     return img
 
+def plt2ndimg(fig):
+    return np.array(plt2pil(fig))
 
 def savefig(fig, fig_name):
     fig_path = fig_name.split("/")
@@ -91,7 +94,7 @@ def imgstack(imgs, dpi=128):
     return fig
 
 
-def imgs_in_row(list_x, n, dpi=128, img_size=400):
+def ndimgs_in_row(list_x, n, dpi=128, img_size=400):
     """
     args:
     list_x: list of elements that imshow can display
