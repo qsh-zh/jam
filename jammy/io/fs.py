@@ -56,6 +56,7 @@ __all__ = [
     "locate_newest_file",
     "move",
     "copy",
+    "replace",
     "io_function_registry",
 ]
 
@@ -356,7 +357,14 @@ def copy(src, dst):
 
 
 def move(src, dst):
-    return os.rename(src, dst)
+    if osp.exists(src):
+        return os.rename(src, dst)
+
+def replace(src, dst):
+    if osp.exists(src):
+        if osp.exists(dst):
+            remove(dst)
+        return os.replace(src, dst)
 
 
 def locate_newest_file(dirname, pattern):

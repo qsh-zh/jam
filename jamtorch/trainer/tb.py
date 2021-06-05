@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.misc
-
+# FIXME: bug for tf1,tf2
 try:
     from StringIO import StringIO as BytesIO  # Python 2.7
 except ImportError:
@@ -10,8 +10,10 @@ import tensorflow
 
 if tensorflow.__version__ >= "1.14.0":
     import tensorflow.compat.v1 as tf
+    create_fn = tensorflow.summary.create_file_writer
 else:
     import tensorflow as tf
+    create_fn = tf.summary.FileWriter
 
 
 class TBLogger(object):
@@ -19,7 +21,7 @@ class TBLogger(object):
     # https://raw.githubusercontent.com/SherlockLiao/pytorch-beginner/
 
     def __init__(self, log_dir):
-        self.writer = tf.summary.FileWriter(log_dir)
+        self.writer = create_fn(log_dir)
 
     def scalar_summary(self, tag, value, step):
         summary = tf.Summary(value=[tf.Summary.Value(tag=tag, simple_value=value)])
