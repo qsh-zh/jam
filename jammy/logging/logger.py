@@ -1,20 +1,27 @@
 import sys
+
 from loguru import logger
 
 __all__ = ["get_logger"]
 
 logger.remove()
 
-logger_sink = []
+logger_sink = {}
+
 
 def get_logger(file_name=None, **kwargs):
     if file_name is None:
         file_name = sys.stderr
-        kwargs["level"] = "INFO"
-    global logger_sink
-    if file_name in logger_sink:
-        logger.debug(f"{file_name} already registered")
+        if "level" not in kwargs:
+            kwargs["level"] = "INFO"
+    global logger_sink  # pylint: disable=global-statement
+    if file_name in logger_sink.values():
+        # FIXME:
+        # logger.debug("already registered")
+        logger.debug(f"{str(file_name)} already registered")
     else:
-        logger.add(file_name,**kwargs)
-        logger_sink.append(file_name)
+        # if "level" not in kwargs:
+        # kwargs["level"] = "DEBUG" if jam_is_debug() else "INFO"
+        sink_id = logger.add(file_name, **kwargs)
+        logger_sink[sink_id] = file_name
     return logger

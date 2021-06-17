@@ -20,9 +20,14 @@ repos:
         exclude: ^tests/.*/fixtures/.*
       - id: debug-statements
 
-  - repo: https://github.com/pycqa/pylint
-    rev: v2.8.2
+  # - repo: https://github.com/pycqa/pylint
+  #   rev: v2.8.2
+  - repo: local
     hooks:
      - id: pylint
+       name: pylint
+       entry: pylint
+       language: system
+       types: [python]
        args:
         - --rcfile=~/.pylintrc
