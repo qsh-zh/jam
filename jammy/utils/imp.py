@@ -2,7 +2,6 @@ import importlib
 import os
 import sys
 
-
 __all__ = [
     "load_module",
     "load_module_filename",
@@ -31,7 +30,7 @@ def load_module_filename(module_filename):
 
 
 def load_source(filename, name=None):
-    import imp
+    import imp  # pylint: disable=import-self
 
     if name is None:
         basename = os.path.basename(filename)
@@ -39,7 +38,7 @@ def load_source(filename, name=None):
             basename = basename[:-3]
         name = basename.replace(".", "_")
 
-    return imp.load_source(name, filename)
+    return imp.load_source(name, filename)  # pylint: disable=arguments-out-of-order
 
 
 def tuple_to_classname(t):

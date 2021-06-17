@@ -1,24 +1,34 @@
-import functools
+#! /usr/bin/env python3
+# -*- coding: utf-8 -*-
+# File   : cache.py
+# Author : Jiayuan Mao
+# Email  : maojiayuan@gmail.com
+# Date   : 01/19/2018
+#
+# Qinsheng Zhang modified based on Jacinle.
+# Distributed under terms of the MIT license.
+
 import collections
+import functools
 import os.path as osp
 import threading
 
 from jammy.logging import get_logger
+
 from .meta import synchronized
 
 logger = get_logger()
 
-__all__ = ['cached_property', 'cached_result', 'fs_cached_result']
+__all__ = ["cached_property", "cached_result", "fs_cached_result"]
 
 
-class cached_property:
+class cached_property:  # pylint: disable=too-few-public-methods, invalid-name
     def __init__(self, fget):
         self.fget = fget
         self.__module__ = fget.__module__
         self.__name__ = fget.__name__
         self.__doc__ = fget.__doc__
-        self.__cache_key = '__result_cache_{}_{}'.format(
-            fget.__name__, id(fget))
+        self.__cache_key = "__result_cache_{}_{}".format(fget.__name__, id(fget))
         self.__mutex = collections.defaultdict(threading.Lock)
 
     def __get__(self, instance, owner):
@@ -68,6 +78,7 @@ def fs_cached_result(filename, force_update=False, verbose=False):
                 logger.info('Writing result cache to "{}".'.format(filename))
             io.dump(filename, computed_value)
             return computed_value
-        return wrapped_func
-    return wrapper
 
+        return wrapped_func
+
+    return wrapper

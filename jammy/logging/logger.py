@@ -1,5 +1,5 @@
-import os
 import sys
+
 from loguru import logger
 
 __all__ = ["get_logger"]
@@ -14,9 +14,11 @@ def get_logger(file_name=None, **kwargs):
         file_name = sys.stderr
         if "level" not in kwargs:
             kwargs["level"] = "INFO"
-    global logger_sink
+    global logger_sink  # pylint: disable=global-statement
     if file_name in logger_sink.values():
-        logger.debug(f"{file_name} already registered")
+        # FIXME:
+        # logger.debug("already registered")
+        logger.debug(f"{str(file_name)} already registered")
     else:
         # if "level" not in kwargs:
         # kwargs["level"] = "DEBUG" if jam_is_debug() else "INFO"
