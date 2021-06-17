@@ -9,7 +9,7 @@ from jammy.logging import get_logger
 
 logger = get_logger()
 
-__all__ = ["hydpath"]
+__all__ = ["hydpath", "instantiate", "hyd_instantiate"]
 
 
 def path(input_path=None):
@@ -26,34 +26,34 @@ def hydpath(input_path=None):
     return path(input_path)
 
 
-def hyd_instantiate(cfg, *args, **kwargs):
+def hyd_instantiate(_cfg, *args, **kwargs):
     """
-    A helper func helps initialize from omegaconf(hydra) cfg
+    A helper func helps initialize from omegaconf(hydra) _cfg
 
     Args:
-        cfg: omegaconf.DictConfig, must contain `_target_` key word
-             if `param` or `params` present in the cfg, they are
+        _cfg: omegaconf.DictConfig, must contain `_target_` key word
+             if `param` or `params` present in the _cfg, they are
              high priority to initialize instance
-             otherwise, use cfg
+             otherwise, use _cfg
 
     Note:
         when use the method pay attention to the parameters order
 
     args and kwargs: other parameters needed to initialize network
     """
-    if cfg is None:
+    if _cfg is None:
         stack = inspect.stack()[1]
         logger.info(
             f"File {stack.filename} {stack.lineno}: {stack.function} creating None object"
         )
         return None
-    module = imp.load_class(cfg["_target_"])
-    if "params" in cfg:
-        _params = OmegaConf.to_container(cfg.params, resolve=True)
-    elif "param" in cfg:
-        _params = OmegaConf.to_container(cfg.param, resolve=True)
+    module = imp.load_class(_cfg["_target_"])
+    if "params" in _cfg:
+        _params = OmegaConf.to_container(_cfg.params, resolve=True)
+    elif "param" in _cfg:
+        _params = OmegaConf.to_container(_cfg.param, resolve=True)
     else:
-        _params = OmegaConf.to_container(cfg, resolve=True)
+        _params = OmegaConf.to_container(_cfg, resolve=True)
         del _params["_target_"]
     if inspect.isclass(module):
         return module(*args, **kwargs, **_params)
@@ -65,22 +65,22 @@ def hyd_instantiate(cfg, *args, **kwargs):
         raise RuntimeError(" only support function and class")
 
 
-def instantiate(cfg, *args, **kwargs):
+def instantiate(_cfg, *args, **kwargs):
     """
-    A helper func helps instantiate from omegaconf(hydra) cfg
+    A helper func helps instantiate from omegaconf(hydra) _cfg
 
     Args:
-        cfg: omegaconf.DictConfig, must contain `_target_` key word
-             if `param` or `params` present in the cfg, they are
+        _cfg: omegaconf.DictConfig, must contain `_target_` key word
+             if `param` or `params` present in the _cfg, they are
              high priority to initialize instance
-             otherwise, use cfg
+             otherwise, use _cfg
 
     Note:
         when use the method pay attention to the parameters order
 
     args and kwargs: other parameters needed to initialize network
     """
-    instance_ = hyd_instantiate(cfg, *args, **kwargs)
+    instance_ = hyd_instantiate(_cfg, *args, **kwargs)
     if inspect.isfunction(instance_):
         return instance_()
     elif isinstance(instance_, partial):

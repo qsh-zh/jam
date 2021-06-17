@@ -1,8 +1,8 @@
-from .genetic_trainer import GeneticTrainer
+from .simple_trainer import SimpleTrainer
 
 import jammy.utils.hyd as hyd
 
-class EmaTrainer(GeneticTrainer):
+class EMATrainer(SimpleTrainer):
     def __init__(self, cfg, loss_fn):
         super().__init__(cfg, loss_fn)
         self.ema = hyd.hyd_instantiate(cfg.ema)

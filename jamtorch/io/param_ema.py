@@ -8,7 +8,7 @@ logger = get_logger()
 
 
 class ParamEMA:
-    def __init__(self, beta, num_warm, num_every, model, forget_resume=False):
+    def __init__(self, beta, num_warm, num_every, model=None, forget_resume=False):
         if beta < 0.0 or beta > 1.0:
             raise ValueError("beta must be between 0 and 1")
         self.one_minus_decay = 1 - beta

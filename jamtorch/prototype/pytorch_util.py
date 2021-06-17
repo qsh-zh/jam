@@ -65,12 +65,19 @@ device = torch.device("cpu")
 _gpu_id = 0
 
 
-def set_gpu_mode(mode, gpu_id=0):
+def set_gpu_mode(is_gpu=True, gpu_id=0):
+    """set jam pytorch utils device
+
+    :param is_gpu: [description], defaults to True
+    :type is_gpu: bool, optional
+    :param gpu_id: [description], defaults to 0
+    :type gpu_id: int, optional
+    """
     global _use_gpu
     global device
     global _gpu_id
     _gpu_id = gpu_id
-    _use_gpu = mode
+    _use_gpu = is_gpu
     device = torch.device("cuda:" + str(gpu_id) if _use_gpu else "cpu")
 
 

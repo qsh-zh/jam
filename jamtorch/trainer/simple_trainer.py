@@ -1,7 +1,7 @@
 from jammy.cli.cmdline_viz import CmdLineViz
 
+from . import progress_fn
 from .genetic_trainer import GeneticTrainer
-from .progress_fn import *
 from .trainer_monitor import TrainerMonitor
 
 
@@ -16,17 +16,8 @@ class SimpleTrainer(GeneticTrainer):
         self.set_up()
 
     def set_up(self):
-        self.register_event("epoch:start", train_bar_init, False)
-        self.register_event("step:end", batch_bar_update, False)
-        self.register_event("epoch:after", batch_bar_new, False)
-        self.register_event("epoch:after", epoch_bar_update, False)
-        self.register_event("epoch:end", bar_close, False)
-
-        self.register_event("step:summary", simple_step_summary, False)
-
-        self.register_event("val:start", val_start, False)
-        self.register_event("val:step", val_step, False)
-        self.register_event("val:end", val_end, False)
+        progress_fn.simple_train_bar(self)
+        progress_fn.simple_val_bar(self)
 
     def monitor_update(self):
         if self.trainer_monitor:

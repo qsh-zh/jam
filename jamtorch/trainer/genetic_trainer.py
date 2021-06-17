@@ -102,6 +102,8 @@ class GeneticTrainer:
             self.val_loader = DataLoader(self.val_set, **loader_cfg)
 
     def set_model_optim(self, model, optimizer=None):
+        if next(model.parameters()).device == torch.device("cpu"):
+            model = model.to(self.device)
         self.model, self.optimizer = model, optimizer
         # resume will loss one epoch, it is acceptable
         if self._cfg.resume:

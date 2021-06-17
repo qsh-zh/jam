@@ -6,6 +6,16 @@ import datetime
 import torch
 from contextlib import nullcontext, contextmanager
 
+__all__ = [
+    "is_master",
+    "is_dist",
+    "master_first",
+    "master_only",
+    "ddp_runner",
+    "ddp_loaders",
+    "get_world_size",
+    "barrier",
+]
 
 def is_master():
     return not dist.is_initialized() or dist.get_rank() == 0
@@ -14,17 +24,25 @@ def is_master():
 def is_dist():
     return dist.is_initialized()
 
+def get_world_size():
+    if is_dist():
+        return dist.get_world_size()
+    return 1
+
+def barrier():
+    if is_dist():
+        dist.barrier()
 
 @contextmanager
 def master_first():
     if not is_master():
-        dist.barrier()
+        barrier()
     yield
     if dist.is_initialized() and is_master():
-        dist.barrier()
+        barrier()
 
 
-def only_master(func):
+def master_only(func):
     @functools.wraps(func)
     def new_func(*args, **kwargs):
         if is_master():
@@ -44,6 +62,10 @@ def ddp_setup(rank, world_size, working_dir, cfg):
 
     # different random seed for different process
     torch.manual_seed(rank)
+
+    # find good ports
+    free_port = comm.find_free_port()
+    cfg.dist.master_port = str(free_port)
 
     os.environ["MASTER_ADDR"] = cfg.dist.master_addr
     os.environ["MASTER_PORT"] = cfg.dist.master_port
@@ -78,7 +100,17 @@ def ddp_runner(func):
     return new_fn
 
 
-def ddp_dataset(train_set, val_set, rank=None, world_size=None, **dl_kwargs):
+def ddp_loaders(train_set, val_set, rank=None, world_size=None, **dl_kwargs):
+    """instantiate dataloaders, deal with ddp and non-ddp, return None sampler
+
+    :type train_set: torch.utils.data.Dataset
+    :type val_set: torch.utils.data.Dataset
+    :param rank: [description], defaults to None
+    :type rank: [type], optional
+    :param world_size: [description], defaults to None
+    :type world_size: [type], optional
+    :return: train_loader, train_sampler, val_loader, val_sampler
+    """
     if not dist.is_initialized():
         # no dist trainining
         if train_set is not None:
@@ -128,8 +160,3 @@ def fast_acc_grad_loss(trainer, loss):
         return True
 
     return False
-
-
-def prepare_trainer(cfg):
-    free_port = comm.find_free_port()
-    cfg.dist.master_port = str(free_port)

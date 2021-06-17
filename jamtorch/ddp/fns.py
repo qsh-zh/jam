@@ -5,6 +5,7 @@ __all__ = ["setup_ema"]
 
 def setup_ema(cfg, trainer):
     trainer.ema = None
+    # FIXME: check ema_master key word design
     if cfg.ema_master: # only one ema on the master
         if is_master():
             trainer.ema = hyd_ema(cfg)

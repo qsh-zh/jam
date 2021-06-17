@@ -7,3 +7,8 @@
 
 - [ ] be careful about amp fp16!
 - [ ] create a fake ddp_trainer, same api
+
+### Syn ddp and non-ddp
+
+* setup ddp
+* `mp.spawn` vs directly call methods
