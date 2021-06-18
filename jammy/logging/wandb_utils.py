@@ -97,6 +97,7 @@ class Wandb:
                 "proj_path": proj_dir,
                 "proj_sha": proj_sha,
                 "hydra": Wandb.IS_HYD,
+                "host": os.environ["HOST"],
             },
         }
         for key in ["name", "entity", "notes", "id"]:
