@@ -299,7 +299,11 @@ def link(path_origin, *paths, use_relative_path=True):
             src_path = os.path.relpath(path_origin, start=os.path.dirname(item))
         else:
             src_path = path_origin
-        os.symlink(src_path, item)
+        try:
+            os.symlink(src_path, item)
+        except FileExistsError:
+            os.unlink(item)
+            os.symlink(src_path, item)
 
 
 def mkdir(path):

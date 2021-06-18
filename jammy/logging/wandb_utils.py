@@ -1,5 +1,6 @@
 import os
 import shutil
+import socket
 
 from omegaconf import OmegaConf
 
@@ -97,7 +98,7 @@ class Wandb:
                 "proj_path": proj_dir,
                 "proj_sha": proj_sha,
                 "hydra": Wandb.IS_HYD,
-                "host": os.environ["HOST"],
+                "host": socket.gethostname(),
             },
         }
         for key in ["name", "entity", "notes", "id"]:
