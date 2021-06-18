@@ -93,6 +93,7 @@ class Wandb:
                 "jam_sha": jam_sha,
                 "proj_path": proj_dir,
                 "proj_sha": proj_sha,
+                "hydra": Wandb.IS_HYD,
             },
         }
         for key in ["name", "entity", "notes", "id"]:
