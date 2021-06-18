@@ -1,11 +1,13 @@
+import collections
+import inspect
+import os.path as osp
+from io import StringIO
+
 import torch
 import torch.nn as nn
-import inspect
-import collections
+
 import jammy.io as io
-from io import StringIO
 from jammy.utils.printing import stprint
-import os.path as osp
 from jamtorch.logging import get_logger
 
 __all__ = [
@@ -51,21 +53,23 @@ def attr_dict(obj, key_list):
     raise RuntimeError
 
 
-def save_ckpt(state, is_best, filename="checkpoint", bestname="model_best"):
-    filename = "{}.pth.tar".format(filename)
+def save_ckpt(state, is_best, filename="checkpoint", bestname="best"):
+    filename = "{}.pth".format(filename)
     torch.save(state, filename)
     if is_best:
-        io.copy(filename, "{}.pth.tar".format(bestname))
+        io.link(filename, "{}.pth".format(bestname), use_relative_path=False)
         logger.info("Save best up to now: {}".format(filename))
 
 
 def load_ckpt(gpu=None, filename="checkpoint"):
-    filename = "{}.pth.tar".format(filename)
+    for ckpt_file in [filename, f"{filename}.pth"]:
+        if osp.isfile(ckpt_file):
+            break
     if isinstance(gpu, int):
         gpu = f"cuda:{gpu}"
-    if osp.isfile(filename):
-        logger.critical("==> Loading from checkpoint '{}'".format(filename))
-        checkpoint = torch.load(filename, map_location=gpu)
+    if osp.isfile(ckpt_file):
+        logger.critical("==> Loading from checkpoint '{}'".format(ckpt_file))
+        checkpoint = torch.load(ckpt_file, map_location=gpu)
         if "env" in checkpoint and checkpoint["env"] is not None:
             env = checkpoint["env"]
             mem_buffer = StringIO()
@@ -74,7 +78,7 @@ def load_ckpt(gpu=None, filename="checkpoint"):
         return checkpoint
     else:
         logger.critical("==> Checkpoint '{}' not found".format(filename))
-        exit(0)
+        raise RuntimeError
 
 
 def aug_ckpt(ckpt, aug_dict, is_save=False, ckpt_file=None):
@@ -105,7 +109,7 @@ def resume_cfg(cfg):
 
     if n_cfg.resume and n_cfg.ckpt is not None:
         ckpt_origin = n_cfg.ckpt
-        for pth_file in [ckpt_origin, f"{ckpt_origin}.pth", f"{ckpt_origin}.pth.tar"]:
+        for pth_file in [ckpt_origin, f"{ckpt_origin}.pth"]:
             if osp.isfile(pth_file):
                 break
         ckpt = torch.load(pth_file, map_location=None)
