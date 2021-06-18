@@ -107,4 +107,5 @@ def flatten_dict(cfg):
 def link_hyd_run(dst_fname=".latest_exp"):
     exp_folder = os.getcwd()
     proj_path = jam_getenv("proj_path")
-    io.link(exp_folder, osp.join(proj_path, dst_fname))
+    io.link(exp_folder, osp.join(proj_path, dst_fname), use_relative_path=False)
+    logger.info(f"{exp_folder} ==>> {osp.join(proj_path, dst_fname)}")
