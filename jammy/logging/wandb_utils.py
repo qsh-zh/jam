@@ -11,7 +11,7 @@ __all__ = ["Wandb", "WandbUrls"]
 class WandbUrls:  # pylint: disable=too-few-public-methods
     def __init__(self, url):
 
-        url_hash = url.split("/")[-2]
+        url_hash = url.split("/")[-1]
         project = url.split("/")[-3]
         entity = url.split("/")[-4]
 
@@ -43,6 +43,9 @@ class WandbUrls:  # pylint: disable=too-few-public-methods
             msg += "{}: {}\n".format(k.upper(), v)
         msg += "=================================================================================================================================\n"
         return msg
+
+    def to_dict(self):
+        return {k.upper(): v for k, v in self.__dict__.items()}
 
 
 class Wandb:
@@ -116,7 +119,7 @@ class Wandb:
             Wandb.IS_ACTIVE = True
             wandb_args = Wandb.prep_args(cfg)
             Wandb.run = wandb.init(**wandb_args)
-            Wandb.cfg = wandb_args["config"].update(dict(WandbUrls(Wandb.run.url)))
+            Wandb.cfg = {**wandb_args["config"], **(WandbUrls(Wandb.run.url).to_dict())}
 
             wandb.save(os.path.join(os.getcwd(), "jam_change.patch"))
             wandb.save(os.path.join(os.getcwd(), "proj_change.patch"))
