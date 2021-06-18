@@ -1,9 +1,11 @@
 # Trainer
 
-## TODO
+## Artifacts and meta
 
-* The procedure bar is not well design!
-* JTrainer
+### exp folder
+
+1. ckpts folder
+2.
 
 ## Responsibility
 

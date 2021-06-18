@@ -1,20 +1,21 @@
+import contextlib
+import glob
+import gzip
 import os
 import os.path as osp
-import glob
-import shutil
-import six
-import contextlib
-
 import pickle
-import gzip
-from zipfile import ZipFile, ZIP_DEFLATED
+import platform
+import shutil
+from zipfile import ZIP_DEFLATED, ZipFile
+
 import numpy as np
 import scipy.io as sio
+import six
 
 from jammy.logging import get_logger
 from jammy.utils.enum import JamEnum
 from jammy.utils.filelock import FileLock
-from jammy.utils.registry import RegistryGroup, CallbackRegistry
+from jammy.utils.registry import CallbackRegistry, RegistryGroup
 
 from .common import get_ext
 
@@ -57,13 +58,14 @@ __all__ = [
     "move",
     "copy",
     "io_function_registry",
+    "latest_time",
 ]
 
 sys_open = open
 
 
 def as_file_descriptor(fd_or_fname, mode="r"):
-    if type(fd_or_fname) is str:
+    if isinstance(fd_or_fname, str):
         return sys_open(fd_or_fname, mode)
     return fd_or_fname
 
@@ -97,6 +99,7 @@ def load_pkl(file, **kwargs):
             return pickle.load(f, encoding="latin1", **kwargs)
 
 
+# pylint: disable=unused-argument
 def load_pklgz(file, **kwargs):
     with open_gz(file, "rb") as f:
         return load_pkl(f)
@@ -157,15 +160,17 @@ def dump_pth(file, obj, **kwargs):
     return torch.save(obj, file)
 
 
-def compress_zip(file, file_list, verbose=True, **kwargs):
+def compress_zip(  # pylint: disable=inconsistent-return-statements
+    file, file_list, verbose=True, **kwargs
+):
     from jammy.cli import yes_or_no
 
     with ZipFile(file, "w", ZIP_DEFLATED) as cur_zip:
-        for file in file_list:
+        for l_file in file_list:
             try:
-                cur_zip.write(file)
+                cur_zip.write(l_file)
             except FileNotFoundError:
-                is_continue = yes_or_no(f"Missing {file}, continue?")
+                is_continue = yes_or_no(f"Missing {l_file}, continue?")
                 if is_continue:
                     pass
                 else:
@@ -218,7 +223,7 @@ io_function_registry.register("compress", ".zip", compress_zip)
 
 _fs_verbose = False
 
-
+# pylint: disable=global-statement
 @contextlib.contextmanager
 def fs_verbose(mode=True):
     global _fs_verbose
@@ -233,7 +238,7 @@ def set_fs_verbose(mode=True):
     _fs_verbose = mode
 
 
-def open(file, mode, **kwargs):
+def open(file, mode, **kwargs):  # pylint: disable=redefined-builtin
     if _fs_verbose and isinstance(file, six.string_types):
         logger.info('Opening file: "{}", mode={}.'.format(file, mode))
     return io_function_registry.dispatch("open", file, mode, **kwargs)
@@ -269,11 +274,11 @@ def safe_dump(fname, data, use_lock=True, use_temp=True, lock_timeout=10):
 
     def safe_dump_inner():
         if use_temp:
-            io.dump(temp_fname, data)
+            dump(temp_fname, data)
             os.replace(temp_fname, fname)
             return True
         else:
-            return io.dump(temp_fname, data)
+            return dump(temp_fname, data)
 
     if use_lock:
         with FileLock(lock_fname, lock_timeout) as flock:
@@ -360,7 +365,22 @@ def move(src, dst):
 
 
 def locate_newest_file(dirname, pattern):
-    fs = lsdir(dirname, pattern, return_type="full")
-    if len(fs) == 0:
+    files = lsdir(dirname, pattern, return_type="full")
+    if len(files) == 0:
         return None
-    return max(fs, key=osp.getmtime)
+    return max(files, key=osp.getmtime)
+
+
+def latest_time(fname):
+    import datetime
+
+    if platform.system() == "Windows":
+        ftime = os.path.getctime(fname)
+    else:
+        stat = os.stat(fname)
+        try:
+            ftime = stat.st_birthtime
+        except AttributeError:
+            # probably on Linux.
+            ftime = stat.st_mtime
+    return datetime.datetime.fromtimestamp(ftime)

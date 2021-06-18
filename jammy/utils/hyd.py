@@ -1,15 +1,20 @@
-from omegaconf import OmegaConf
+import inspect
+import os
 import os.path as osp
-import hydra
-import inspect
-import inspect
+from collections.abc import Mapping
 from functools import partial, update_wrapper
+
+import hydra
+from omegaconf import OmegaConf
+
+import jammy.io as io
 import jammy.utils.imp as imp
 from jammy.logging import get_logger
+from jammy.utils.env import jam_getenv
 
 logger = get_logger()
 
-__all__ = ["hydpath", "instantiate", "hyd_instantiate"]
+__all__ = ["hydpath", "instantiate", "hyd_instantiate", "link_hyd_run"]
 
 
 def path(input_path=None):
@@ -86,3 +91,20 @@ def instantiate(_cfg, *args, **kwargs):
     elif isinstance(instance_, partial):
         return instance_()
     return instance_
+
+
+def flatten_dict(cfg):
+    rtn = {}
+    for k, v in cfg.items():
+        if isinstance(v, Mapping):
+            sub = {f"{k}/{sub_k}": sub_v for sub_k, sub_v in flatten_dict(v).items()}
+            rtn.update(sub)
+        else:
+            rtn[k] = v
+    return rtn
+
+
+def link_hyd_run(dst_fname=".latest_exp"):
+    exp_folder = os.getcwd()
+    proj_path = jam_getenv("proj_path")
+    io.link(exp_folder, osp.join(proj_path, dst_fname))

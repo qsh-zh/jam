@@ -1,8 +1,10 @@
 import os
-import sys
-import resource
 import pathlib
-from jammy.utils.env import jam_getenv, jam_is_debug, jam_getenv
+import resource
+import sys
+
+from jammy.utils.env import jam_getenv, jam_is_debug
+
 from .meta import run_once
 
 
@@ -37,6 +39,7 @@ def init_main():
 
 @run_once
 def main_path():
-    if jam_getenv("run_path") is None:
-        os.environ["JAM_RUN_PATH"] = str(pathlib.Path().absolute())
+    if jam_getenv("proj_path") is None:
+        os.environ["JAM_PROJ_PATH"] = str(pathlib.Path().absolute())
         return pathlib.Path().absolute()
+    return jam_getenv("proj_path")

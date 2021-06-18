@@ -1,12 +1,16 @@
 import os
 import sys
+
 from jammy.cli.keyboard import str2bool
+
 from .cache import cached_result
 
 __all__ = ["jam_getenv", "jam_is_verbose", "jam_is_debug", "jam_setenv"]
 
 
-def jam_getenv(name, default=None, type=None, prefix=None):
+def jam_getenv(
+    name, default=None, type=None, prefix=None
+):  # pylint: disable=redefined-builtin
     if prefix is None:
         prefix = "JAM_"
 

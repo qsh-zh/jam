@@ -1,59 +1,48 @@
-from jammy.utils.naming import class_name_of_method
-import jammy.utils.git as git
-import shutil
 import os
-import subprocess
-from collections.abc import Mapping
+import shutil
+
 from omegaconf import OmegaConf
 
-__all__ = ["Wandb"]
+import jammy.utils.git as git
+
+__all__ = ["Wandb", "WandbUrls"]
 
 
-class WandbUrls:
+class WandbUrls:  # pylint: disable=too-few-public-methods
     def __init__(self, url):
 
-        hash = url.split("/")[-2]
+        url_hash = url.split("/")[-2]
         project = url.split("/")[-3]
         entity = url.split("/")[-4]
 
         self.weight_url = url
         self.log_url = "https://app.wandb.ai/{}/{}/runs/{}/logs".format(
-            entity, project, hash
+            entity, project, url_hash
         )
         self.chart_url = "https://app.wandb.ai/{}/{}/runs/{}".format(
-            entity, project, hash
+            entity, project, url_hash
         )
         self.overview_url = "https://app.wandb.ai/{}/{}/runs/{}/overview".format(
-            entity, project, hash
+            entity, project, url_hash
         )
         self.hydra_config_url = (
             "https://app.wandb.ai/{}/{}/runs/{}/files/hydra-config.yaml".format(
-                entity, project, hash
+                entity, project, url_hash
             )
         )
         self.overrides_url = (
             "https://app.wandb.ai/{}/{}/runs/{}/files/overrides.yaml".format(
-                entity, project, hash
+                entity, project, url_hash
             )
         )
 
+    # pylint: disable=line-too-long
     def __repr__(self):
         msg = "=================================================== WANDB URLS ===================================================================\n"
         for k, v in self.__dict__.items():
             msg += "{}: {}\n".format(k.upper(), v)
         msg += "=================================================================================================================================\n"
         return msg
-
-
-def flatten_dict(cfg):
-    rtn = {}
-    for k, v in cfg.items():
-        if isinstance(v, Mapping):
-            sub = {f"k/{sub_k}": sub_v for sub_k, sub_v in flatten_dict(v).items()}
-            rtn.update(sub)
-        else:
-            rtn[k] = v
-    return rtn
 
 
 class Wandb:
@@ -71,48 +60,58 @@ class Wandb:
             wandb_args[name] = var
 
     @staticmethod
+    def check_repos():
+        jam_sha, jam_diff = git.log_repo(__file__)
+        from jammy.utils.env import jam_getenv
+
+        if jam_getenv("proj_path"):
+            proj_dir = jam_getenv("proj_path")
+        else:
+            import __main__ as _main
+
+            proj_dir = _main.__file__
+        project_sha, project_diff = git.log_repo(proj_dir)
+        with open("jam_change.patch", "w") as f:
+            f.write(jam_diff)
+        with open("proj_change.patch", "w") as f:
+            f.write(project_diff)
+
+        return jam_sha, proj_dir, project_sha
+
+    @staticmethod
+    def prep_args(cfg):
+        jam_sha, proj_dir, proj_sha = Wandb.check_repos()
+        wandb_args = {
+            "project": cfg.wandb.project,
+            "resume": "allow",
+            "tags": cfg.wandb.tags,
+            "config": {
+                "run_path": os.getcwd(),
+                "jam_sha": jam_sha,
+                "proj_path": proj_dir,
+                "proj_sha": proj_sha,
+            },
+        }
+        for key in ["name", "entity", "notes", "id"]:
+            Wandb._set_to_wandb_args(wandb_args, cfg, key)
+
+        cfg_dict = OmegaConf.to_container(cfg, resolve=True)
+        if "wandb" in cfg_dict:
+            del cfg_dict["wandb"]
+
+        wandb_args["config"]["z"] = cfg_dict
+
+        return wandb_args
+
+    @staticmethod
     def launch(cfg, launch: bool, is_hydra: bool = False):
         if launch:
             import wandb
 
             Wandb.IS_ACTIVE = True
-            wandb_args = {}
-            wandb_args["project"] = cfg.wandb.project
-            wandb_args["tags"] = cfg.wandb.tags
-            wandb_args["resume"] = "allow"
-            Wandb._set_to_wandb_args(wandb_args, cfg, "name")
-            Wandb._set_to_wandb_args(wandb_args, cfg, "entity")
-            Wandb._set_to_wandb_args(wandb_args, cfg, "notes")
-            Wandb._set_to_wandb_args(wandb_args, cfg, "config")
-            Wandb._set_to_wandb_args(wandb_args, cfg, "id")
-
-            jam_sha, jam_diff = git.log_repo(__file__)
-            from jammy.utils.env import jam_getenv
-            if jam_getenv("run_path"):
-                proj_dir = jam_getenv("run_path")
-            else:
-                import __main__ as _main
-                proj_dir = _main.__file__
-            project_sha, project_diff = git.log_repo(proj_dir)
-
-            all_cfg_dict = OmegaConf.to_container(cfg, resolve=True)
-            if "wandb" in all_cfg_dict:
-                del all_cfg_dict["wandb"]
-            config = wandb_args.get("config", {})
-            wandb_args["config"] = {
-                "z": all_cfg_dict,
-                **config,
-                "run_path": os.getcwd(),
-                "jam_sha": jam_sha,
-                "proj_sha": project_sha,
-            }
-
+            wandb_args = Wandb.prep_args(cfg)
             wandb.init(**wandb_args)
 
-            with open("jam_change.patch", "w") as f:
-                f.write(jam_diff)
-            with open("proj_change.patch", "w") as f:
-                f.write(project_diff)
             wandb.save(os.path.join(os.getcwd(), "jam_change.patch"))
             wandb.save(os.path.join(os.getcwd(), "proj_change.patch"))
 
@@ -148,16 +147,3 @@ class Wandb:
         import wandb
 
         wandb.finish()
-
-    @staticmethod
-    def config(cfg):
-        if not Wandb.IS_ACTIVE:
-            return
-        import wandb
-
-        if isinstance(cfg, dict):
-            wandb.config.update(cfg)
-        else:
-            from omegaconf import OmegaConf
-
-            wandb.config.update(OmegaConf.to_container(flatten_dict(cfg)))
