@@ -131,7 +131,7 @@ class Wandb:
         else:
             Wandb.cfg = Wandb.prep_args(cfg)["config"]
         if dump_meta:
-            with open("meta.yaml") as fp:
+            with open("meta.yaml", "w") as fp:
                 OmegaConf.save(config=OmegaConf.create(Wandb.cfg), f=fp.name)
 
     @staticmethod
