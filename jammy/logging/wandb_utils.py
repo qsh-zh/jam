@@ -47,6 +47,8 @@ class WandbUrls:  # pylint: disable=too-few-public-methods
 
 class Wandb:
     IS_ACTIVE = False
+    IS_HYD = False
+    cfg = None
     run = None
 
     @staticmethod
@@ -105,13 +107,15 @@ class Wandb:
         return wandb_args
 
     @staticmethod
-    def launch(cfg, launch: bool, is_hydra: bool = False):
+    def launch(cfg, launch: bool, is_hydra: bool = False, dump_meta: bool = True):
+        Wandb.IS_HYD = is_hydra
         if launch:
             import wandb
 
             Wandb.IS_ACTIVE = True
             wandb_args = Wandb.prep_args(cfg)
             Wandb.run = wandb.init(**wandb_args)
+            Wandb.cfg = wandb_args["config"].update(dict(WandbUrls(Wandb.run.url)))
 
             wandb.save(os.path.join(os.getcwd(), "jam_change.patch"))
             wandb.save(os.path.join(os.getcwd(), "proj_change.patch"))
@@ -123,6 +127,11 @@ class Wandb:
                 )
                 wandb.save(os.path.join(os.getcwd(), ".hydra/hydra-config.yaml"))
                 wandb.save(os.path.join(os.getcwd(), ".hydra/overrides.yaml"))
+        else:
+            Wandb.cfg = Wandb.prep_args(cfg)["config"]
+        if dump_meta:
+            with open("meta.yaml") as fp:
+                OmegaConf.save(config=OmegaConf.create(Wandb.cfg), f=fp.name)
 
     @staticmethod
     def add_file(file_path: str):
@@ -146,5 +155,8 @@ class Wandb:
         if not Wandb.IS_ACTIVE:
             return
         import wandb
+
+        if os.path.exists("jam_.log"):
+            Wandb.add_file("jam_.log")
 
         wandb.finish()
