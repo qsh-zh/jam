@@ -47,6 +47,7 @@ class WandbUrls:  # pylint: disable=too-few-public-methods
 
 class Wandb:
     IS_ACTIVE = False
+    run = None
 
     @staticmethod
     def set_urls_to_model(model, url):
@@ -110,7 +111,7 @@ class Wandb:
 
             Wandb.IS_ACTIVE = True
             wandb_args = Wandb.prep_args(cfg)
-            wandb.init(**wandb_args)
+            Wandb.run = wandb.init(**wandb_args)
 
             wandb.save(os.path.join(os.getcwd(), "jam_change.patch"))
             wandb.save(os.path.join(os.getcwd(), "proj_change.patch"))
