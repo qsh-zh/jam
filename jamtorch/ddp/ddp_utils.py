@@ -1,10 +1,12 @@
-import torch.distributed as dist
-import functools
-import jammy.comm as comm
-import os
 import datetime
+import functools
+import os
+from contextlib import contextmanager, nullcontext
+
 import torch
-from contextlib import nullcontext, contextmanager
+import torch.distributed as dist
+
+import jammy.comm as comm
 
 __all__ = [
     "is_master",
@@ -17,6 +19,7 @@ __all__ = [
     "barrier",
 ]
 
+
 def is_master():
     return not dist.is_initialized() or dist.get_rank() == 0
 
@@ -24,14 +27,17 @@ def is_master():
 def is_dist():
     return dist.is_initialized()
 
+
 def get_world_size():
     if is_dist():
         return dist.get_world_size()
     return 1
 
+
 def barrier():
     if is_dist():
         dist.barrier()
+
 
 @contextmanager
 def master_first():
@@ -44,11 +50,10 @@ def master_first():
 
 def master_only(func):
     @functools.wraps(func)
-    def new_func(*args, **kwargs):
+    def new_func(*args, **kwargs):  # pylint: disable=inconsistent-return-statements
         if is_master():
             return func(*args, **kwargs)
-        else:
-            return
+        return
 
     return new_func
 
@@ -62,10 +67,6 @@ def ddp_setup(rank, world_size, working_dir, cfg):
 
     # different random seed for different process
     torch.manual_seed(rank)
-
-    # find good ports
-    free_port = comm.find_free_port()
-    cfg.dist.master_port = str(free_port)
 
     os.environ["MASTER_ADDR"] = cfg.dist.master_addr
     os.environ["MASTER_PORT"] = cfg.dist.master_port
@@ -160,3 +161,9 @@ def fast_acc_grad_loss(trainer, loss):
         return True
 
     return False
+
+
+def prepare_cfg(cfg):
+    # find good ports
+    free_port = comm.find_free_port()
+    cfg.trainer.dist.master_port = str(free_port)

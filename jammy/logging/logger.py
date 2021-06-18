@@ -9,12 +9,15 @@ logger.remove()
 logger_sink = {}
 
 
-def get_logger(file_name=None, **kwargs):
+def get_logger(file_name=None, clear=False, **kwargs):
+    global logger_sink  # pylint: disable=global-statement
+    if clear:
+        logger.remove()
+        logger_sink.clear()
     if file_name is None:
         file_name = sys.stderr
         if "level" not in kwargs:
             kwargs["level"] = "INFO"
-    global logger_sink  # pylint: disable=global-statement
     if file_name in logger_sink.values():
         # FIXME:
         # logger.debug("already registered")

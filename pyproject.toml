@@ -21,6 +21,7 @@ black = "^21.5b1"
 tornado = "^6.1"
 lmdb = "^1.2.1"
 python-memcached = "^1.59"
+pylint = "^2.8.3"
 
 [tool.poetry.dev-dependencies]
 
