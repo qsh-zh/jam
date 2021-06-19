@@ -3,10 +3,12 @@ import inspect
 import os.path as osp
 from io import StringIO
 
+import numpy as np
 import torch
 import torch.nn as nn
 
 import jammy.io as io
+from jammy.utils.matching import IENameMatcher
 from jammy.utils.printing import stprint
 from jamtorch.logging import get_logger
 
@@ -76,9 +78,9 @@ def load_ckpt(gpu=None, filename="checkpoint"):
             stprint(env, file=mem_buffer)
             logger.info("\n" + mem_buffer.getvalue())
         return checkpoint
-    else:
-        logger.critical("==> Checkpoint '{}' not found".format(filename))
-        raise RuntimeError
+
+    logger.critical("==> Checkpoint '{}' not found".format(filename))
+    raise RuntimeError
 
 
 def aug_ckpt(ckpt, aug_dict, is_save=False, ckpt_file=None):
@@ -115,3 +117,51 @@ def resume_cfg(cfg):
         ckpt = torch.load(pth_file, map_location=None)
         cfg = ckpt["cfg"] if "cfg" in ckpt else cfg
     return cfg
+
+
+def load_state_dict(model, ckpt_state_dict, include=None, exclude=None):
+    if hasattr(model, "module"):
+        model = model.module
+
+    matcher = IENameMatcher(include, exclude)
+    with matcher:
+        ckpt_state_dict = {k: v for k, v in ckpt_state_dict.items() if matcher.match(k)}
+    stat = matcher.get_last_stat()  # examine unused rules
+    if len(stat[1]) > 0:
+        logger.critical(
+            "Weights {}: {}.".format(stat[0], ", ".join(sorted(list(stat[1]))))
+        )
+
+    # Build the tensors.
+    for k, v in ckpt_state_dict.items():
+        if isinstance(v, np.ndarray):
+            ckpt_state_dict[k] = torch.from_numpy(v)
+
+    error_msg = []
+    own_state = model.state_dict()
+    for name, param in ckpt_state_dict.items():
+        if name in own_state:
+            if isinstance(param, nn.Parameter):
+                # backwards compatibility for serialized parameters
+                param = param.data
+            try:
+                own_state[name].copy_(param)
+            except Exception:  # pylint: disable=broad-except
+                error_msg.append(
+                    "While copying the parameter named {}, "
+                    "whose dimensions in the model are {} and "
+                    "whose dimensions in the checkpoint are {}.".format(
+                        name, own_state[name].size(), param.size()
+                    )
+                )
+
+    missing = set(own_state.keys()) - set(ckpt_state_dict.keys())
+    if len(missing) > 0:
+        error_msg.append('Missing keys in state_dict: "{}".'.format(missing))
+
+    unexpected = set(ckpt_state_dict.keys()) - set(own_state.keys())
+    if len(unexpected) > 0:
+        error_msg.append('Unexpected key "{}" in state_dict.'.format(unexpected))
+
+    if len(error_msg) > 0:
+        raise KeyError("\n".join(error_msg))
