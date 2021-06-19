@@ -138,7 +138,7 @@ def load_state_dict(model, ckpt_state_dict, include=None, exclude=None):
         if isinstance(v, np.ndarray):
             ckpt_state_dict[k] = torch.from_numpy(v)
 
-    error_msg = []
+    error_msg, warn_msg = [], []
     own_state = model.state_dict()
     for name, param in ckpt_state_dict.items():
         if name in own_state:
@@ -158,11 +158,14 @@ def load_state_dict(model, ckpt_state_dict, include=None, exclude=None):
 
     missing = set(own_state.keys()) - set(ckpt_state_dict.keys())
     if len(missing) > 0:
-        error_msg.append('Missing keys in state_dict: "{}".'.format(missing))
+        warn_msg.append('Missing keys in state_dict: "{}".'.format(missing))
 
     unexpected = set(ckpt_state_dict.keys()) - set(own_state.keys())
     if len(unexpected) > 0:
-        error_msg.append('Unexpected key "{}" in state_dict.'.format(unexpected))
+        warn_msg.append('Unexpected key "{}" in state_dict.'.format(unexpected))
 
     if len(error_msg) > 0:
         raise KeyError("\n".join(error_msg))
+
+    if len(warn_msg) > 0:
+        logger.critical("\n".join(warn_msg))
