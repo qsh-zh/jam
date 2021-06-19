@@ -23,8 +23,6 @@ __all__ = [
     "load_state_dict",
 ]
 
-logger = get_logger()
-
 
 def state_dict(obj):
     if obj is None:
@@ -61,10 +59,12 @@ def save_ckpt(state, is_best, filename="checkpoint", bestname="best"):
     torch.save(state, filename)
     if is_best:
         io.link(filename, "{}.pth".format(bestname), use_relative_path=False)
+        logger = get_logger()
         logger.info("Save best up to now: {}".format(filename))
 
 
 def load_ckpt(gpu=None, filename="checkpoint"):
+    logger = get_logger()
     for ckpt_file in [filename, f"{filename}.pth"]:
         if osp.isfile(ckpt_file):
             break
@@ -120,7 +120,10 @@ def resume_cfg(cfg):
     return cfg
 
 
-def load_state_dict(model, ckpt_state_dict, include=None, exclude=None):
+def load_state_dict(
+    model, ckpt_state_dict, include=None, exclude=None
+):  # pylint: disable= too-many-locals
+    logger = get_logger()
     if hasattr(model, "module"):
         model = model.module
 

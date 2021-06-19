@@ -147,8 +147,11 @@ class GeneticTrainer:  # pylint: disable=too-many-instance-attributes
     def _impl_load_ckpt(self, state):
         msg_model = self.model.load_state_dict(state["model"])
         logger.critical(f"load model ckpt {msg_model}")
-        msg_optimizer = self.optimizer.load_state_dict(state["optimizer"])
-        logger.critical(f"load optimizer ckpt {msg_optimizer}")
+        if "optimizer" in state:
+            msg_optimizer = self.optimizer.load_state_dict(state["optimizer"])
+            logger.critical(f"load optimizer ckpt {msg_optimizer}")
+        else:
+            logger.critical("no optimizer in state")
         self._impl_load_amp_scaler(state)
 
     def _impl_load_amp_scaler(self, state):
