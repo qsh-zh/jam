@@ -1,11 +1,13 @@
 import os
+import os.path as osp
+
 import torch
-from torch.utils.data import DataLoader
 from omegaconf import DictConfig, OmegaConf
+from torch.utils.data import DataLoader
+
 from jammy.event import SimpleEventRegistry
 from jammy.utils.enum import JamEnum
-from jamtorch.io import attr_dict, save_ckpt, load_ckpt
-import os.path as osp
+from jamtorch.io import attr_dict, load_ckpt, save_ckpt
 from jamtorch.logging import get_logger
 
 from . import trainer_fn
@@ -21,7 +23,22 @@ class EvalState(JamEnum):
     EPOCH = 3
 
 
-class GeneticTrainer:
+class NanException(Exception):
+    pass
+
+
+class InfException(Exception):
+    pass
+
+
+def check_loss_error(loss):
+    if torch.isnan(loss):
+        raise NanException
+    if torch.isinf(loss):
+        raise InfException
+
+
+class GeneticTrainer:  # pylint: disable=too-many-instance-attributes
     def __init__(self, cfg, loss_fn):
         self._device = None
         self.train_set = None
@@ -38,6 +55,7 @@ class GeneticTrainer:
         self.best_loss = float("inf")
         self.ckpt_dir = getattr(cfg, "ckpt_dir") or os.getcwd()
         self._states = ["epoch_cnt", "iter_cnt", "best_loss"]
+        self.latest_ckpt = None
 
         self._cfg = cfg
         self.eval_epoch = cfg.get("eval_epoch") or 1
@@ -87,7 +105,7 @@ class GeneticTrainer:
     def set_dataset(self, train_set, val_set=None, loader_cfg=None):
         self.train_set, self.val_set = train_set, val_set
         if loader_cfg is not None:
-            return self.quick_loader(loader_cfg)
+            self.quick_loader(loader_cfg)
 
     def set_dataloader(self, train_loader, val_loader):
         self.train_loader = train_loader
@@ -135,15 +153,10 @@ class GeneticTrainer:
 
     def _impl_load_amp_scaler(self, state):
         if self.use_amp:
-            try:
-                if "amp_scaler" in state and len(state["amp_scaler"]) == 0:
-                    self.amp_scaler.load_state_dict(state["amp_scaler"])
-                else:
-                    logger.critical("enabled amp but amp_scaler not found")
-            except Exception as e:
-                if hasattr(e, 'message'):
-                    print(e.message)
-                    raise RuntimeError
+            if "amp_scaler" in state and len(state["amp_scaler"]) == 0:
+                self.amp_scaler.load_state_dict(state["amp_scaler"])
+            else:
+                logger.critical("enabled amp but amp_scaler not found")
 
     def save_ckpt(self, val_loss=float("inf")):
         is_best = val_loss < self.best_loss
@@ -207,6 +220,7 @@ class GeneticTrainer:
                     loss, monitor, cmdviz_dict = self.loss_fn(
                         self, batch, is_train=False
                     )
+                    check_loss_error(loss)
                 self.trigger_event("val:step", self, batch, loss, monitor, cmdviz_dict)
         self.trigger_event("val:end", self)
 
@@ -252,6 +266,8 @@ class GeneticTrainer:
         self.trigger_event("forward:before", self, feed_dict)
         with torch.cuda.amp.autocast(enabled=self.use_amp):
             loss, monitors, cmdviz_dict = self.loss_fn(self, feed_dict, is_train=True)
+
+        check_loss_error(loss)
         self.trigger_event(
             "forward:after", self, feed_dict, loss, monitors, cmdviz_dict
         )
