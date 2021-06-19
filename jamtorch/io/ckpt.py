@@ -20,6 +20,7 @@ __all__ = [
     "aug_ckpt",
     "resume_cfg",
     "set_ckpt",
+    "load_state_dict",
 ]
 
 logger = get_logger()
