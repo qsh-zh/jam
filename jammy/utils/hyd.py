@@ -5,7 +5,7 @@ from collections.abc import Mapping
 from functools import partial, update_wrapper
 
 import hydra
-from omegaconf import OmegaConf
+from omegaconf import DictConfig, OmegaConf
 
 import jammy.io as io
 import jammy.utils.imp as imp
@@ -14,7 +14,7 @@ from jammy.utils.env import jam_getenv
 
 logger = get_logger()
 
-__all__ = ["hydpath", "instantiate", "hyd_instantiate", "link_hyd_run"]
+__all__ = ["hydpath", "instantiate", "hyd_instantiate", "link_hyd_run", "update_cfg"]
 
 
 def path(input_path=None):
@@ -62,12 +62,12 @@ def hyd_instantiate(_cfg, *args, **kwargs):
         del _params["_target_"]
     if inspect.isclass(module):
         return module(*args, **kwargs, **_params)
-    elif inspect.isfunction(module):
+    if inspect.isfunction(module):
         partial_fn = partial(module, *args, **kwargs, **_params)
         update_wrapper(partial_fn, module)
         return partial_fn
-    else:
-        raise RuntimeError(" only support function and class")
+
+    raise RuntimeError(" only support function and class")
 
 
 def instantiate(_cfg, *args, **kwargs):
@@ -88,7 +88,7 @@ def instantiate(_cfg, *args, **kwargs):
     instance_ = hyd_instantiate(_cfg, *args, **kwargs)
     if inspect.isfunction(instance_):
         return instance_()
-    elif isinstance(instance_, partial):
+    if isinstance(instance_, partial):
         return instance_()
     return instance_
 
@@ -97,7 +97,7 @@ def flatten_dict(cfg):
     rtn = {}
     for k, v in cfg.items():
         if isinstance(v, Mapping):
-            sub = {f"{k}/{sub_k}": sub_v for sub_k, sub_v in flatten_dict(v).items()}
+            sub = {f"{k}.{sub_k}": sub_v for sub_k, sub_v in flatten_dict(v).items()}
             rtn.update(sub)
         else:
             rtn[k] = v
@@ -109,3 +109,8 @@ def link_hyd_run(dst_fname=".latest_exp"):
     proj_path = jam_getenv("proj_path")
     io.link(exp_folder, osp.join(proj_path, dst_fname), use_relative_path=False)
     logger.info(f"{exp_folder} ==>> {osp.join(proj_path, dst_fname)}")
+
+
+def update_cfg(cfg: DictConfig, dotlist):
+    new_conf = OmegaConf.from_dotlist(dotlist)
+    return OmegaConf.merge(cfg, new_conf)

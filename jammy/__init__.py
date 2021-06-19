@@ -12,7 +12,7 @@ if jam_getenv("IMPORT_ALL", "true", "bool"):
     from jammy import io
     from jammy.utils.hyd import hyd_instantiate, hydpath
     from jammy.utils.hyd import instantiate as jam_instantiate
-    from jammy.utils.hyd import link_hyd_run
+    from jammy.utils.hyd import link_hyd_run, update_cfg
     from jammy.utils.imp import load_class, load_module
     from jammy.utils.meta import (
         Singleton,
