@@ -23,21 +23,6 @@ class EvalState(JamEnum):
     EPOCH = 3
 
 
-class NanException(Exception):
-    pass
-
-
-class InfException(Exception):
-    pass
-
-
-def check_loss_error(loss):
-    if torch.isnan(loss):
-        raise NanException
-    if torch.isinf(loss):
-        raise InfException
-
-
 class GeneticTrainer:  # pylint: disable=too-many-instance-attributes
     def __init__(self, cfg, loss_fn):
         self._device = None
@@ -223,7 +208,6 @@ class GeneticTrainer:  # pylint: disable=too-many-instance-attributes
                     loss, monitor, cmdviz_dict = self.loss_fn(
                         self, batch, is_train=False
                     )
-                    check_loss_error(loss)
                 self.trigger_event("val:step", self, batch, loss, monitor, cmdviz_dict)
         self.trigger_event("val:end", self)
 
@@ -270,7 +254,6 @@ class GeneticTrainer:  # pylint: disable=too-many-instance-attributes
         with torch.cuda.amp.autocast(enabled=self.use_amp):
             loss, monitors, cmdviz_dict = self.loss_fn(self, feed_dict, is_train=True)
 
-        check_loss_error(loss)
         self.trigger_event(
             "forward:after", self, feed_dict, loss, monitors, cmdviz_dict
         )

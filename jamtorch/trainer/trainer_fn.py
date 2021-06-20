@@ -1,6 +1,26 @@
 import torch
 
-__all__ = ["step_lr", "register_grad_clip", "trainer_save_cfg"]
+__all__ = [
+    "LossException",
+    "NanException",
+    "InfException",
+    "step_lr",
+    "register_grad_clip",
+    "trainer_save_cfg",
+    "check_loss_error",
+]
+
+# pylint: disable=unused-argument
+class LossException(Exception):
+    pass
+
+
+class NanException(LossException):
+    pass
+
+
+class InfException(LossException):
+    pass
 
 
 def step_lr(trainer, *args, **kwargs):
@@ -25,3 +45,14 @@ def trainer_save_cfg(trainer, cfg):
         state_dict["cfg"] = cfg
 
     trainer.register_event("trainer:export", save_cfg)
+
+
+def check_loss_error(trainer):
+    def _check_loss_error(_trainer, batch, loss, *args):
+        if torch.isnan(loss):
+            raise NanException
+        if torch.isinf(loss):
+            raise InfException
+
+    trainer.register_event("forward:after", _check_loss_error)
+    trainer.register_event("val:step", _check_loss_error)
