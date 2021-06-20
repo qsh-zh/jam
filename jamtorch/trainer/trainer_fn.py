@@ -44,7 +44,7 @@ def trainer_save_cfg(trainer, cfg):
     def save_cfg(_trainer, state_dict):
         state_dict["cfg"] = cfg
 
-    trainer.register_event("trainer:export", save_cfg)
+    trainer.register_event("trainer:export", save_cfg, False)
 
 
 def check_loss_error(trainer):
@@ -54,5 +54,5 @@ def check_loss_error(trainer):
         if torch.isinf(loss):
             raise InfException
 
-    trainer.register_event("forward:after", _check_loss_error)
-    trainer.register_event("val:step", _check_loss_error)
+    trainer.register_event("forward:after", _check_loss_error, False)
+    trainer.register_event("val:step", _check_loss_error, False)
