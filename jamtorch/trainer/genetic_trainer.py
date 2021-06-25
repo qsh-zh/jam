@@ -18,7 +18,7 @@ __all__ = ["EvalState", "GeneticTrainer"]
 
 
 class EvalState(JamEnum):
-    NO = 1
+    NO = 1  # pylint: disable= invalid-name
     ITER = 2
     EPOCH = 3
 
@@ -73,6 +73,12 @@ class GeneticTrainer:  # pylint: disable=too-many-instance-attributes
         )
         if cfg.clip_grad and cfg.clip_grad > 0:
             trainer_fn.register_grad_clip(self, cfg.clip_grad)
+
+    @property
+    def mmodel(self):
+        if hasattr(self.model, "module"):
+            return self.model.module
+        return self.model
 
     @property
     def device(self):
