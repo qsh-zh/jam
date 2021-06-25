@@ -56,9 +56,13 @@ class EMA:
         self._old_model = copy.deepcopy(model)
 
     def state_dict(self):
+        if self._old_model is None:
+            model_params = None
+        else:
+            model_params = self._old_model.state_dict()
         return {
             "cnt": self.cnt,
-            "model": self._old_model.state_dict(),
+            "model": model_params,
             "num_warm": self.num_warm,
             "num_every": self.num_every,
             "beta": self.beta,

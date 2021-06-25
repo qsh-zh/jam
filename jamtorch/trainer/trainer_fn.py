@@ -1,3 +1,5 @@
+import os.path as osp
+
 import torch
 
 __all__ = [
@@ -48,11 +50,30 @@ def trainer_save_cfg(trainer, cfg):
 
 
 def check_loss_error(trainer):
+    def _deal_error(_trainer):
+        model = (
+            _trainer.model.module
+            if hasattr(_trainer.model, "module")
+            else _trainer.model
+        )
+        from jammy.io import locate_newest_file
+        from jammy.logging import get_logger
+        from jamtorch.io import load_ckpt
+
+        fckpt = locate_newest_file(_trainer.ckpt_dir, "*.pth")
+        state = load_ckpt(_trainer.device, osp.join(_trainer.ckpt_dir, fckpt))
+        msg_model = model.load_state_dict(state["model"])
+        logger = get_logger()
+        trainer_id = trainer.rank if hasattr(trainer, "rank") else 0
+        logger.critical(f"{trainer_id}: reload model ckpt {msg_model}")
+
     def _check_loss_error(_trainer, batch, loss, *args):
         if torch.isnan(loss):
+            _deal_error(_trainer)
             raise NanException
         if torch.isinf(loss):
+            _deal_error(_trainer)
             raise InfException
 
     trainer.register_event("forward:after", _check_loss_error, False)
-    trainer.register_event("val:step", _check_loss_error, False)
+    # trainer.register_event("val:step", _check_loss_error, False)
