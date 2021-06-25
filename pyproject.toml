@@ -4,6 +4,13 @@ version = "0.1.0"
 description = "Personal ToolBox"
 authors = ["Qinsheng <qsh.zh27@gmail.com>"]
 license = "MIT"
+packages = [
+    { include="jammy" },
+    { include="jamtorch" },
+    { include="jamnp" },
+    { include="jamviz" },
+    { include="jamweb" }
+]
 
 [tool.poetry.dependencies]
 python = ">=3.7,<3.10"
@@ -15,15 +22,15 @@ hydra-core = "^1.0.6"
 GitPython = "^3.1.17"
 ipdb = "^0.13.8"
 torch = "^1.7.0"
-pre-commit = "^2.13.0"
-isort = "^5.8.0"
-black = "^21.5b1"
 tornado = "^6.1"
 lmdb = "^1.2.1"
 python-memcached = "^1.59"
-pylint = "^2.8.3"
 
 [tool.poetry.dev-dependencies]
+pre-commit = "^2.13.0"
+isort = "^5.8.0"
+black = "^21.5b1"
+pylint = "^2.8.3"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
