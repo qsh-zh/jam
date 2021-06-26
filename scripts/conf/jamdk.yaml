@@ -14,4 +14,4 @@ jam: true
 ssh: true
 file: container.jamdk
 network: host
-
+memory:
