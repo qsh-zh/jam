@@ -1,0 +1,3 @@
+[repositories]
+[repositories.gl]
+url = "https://gitlab.com/api/v4/projects/22398142/packages/pypi"
