@@ -15,6 +15,8 @@ stages:
 
 .install-deps-template: &install-deps
   before_script:
+    - echo "${GITLAB_PYPI_NAME}"
+    - echo "$GITLAB_PYPI_NAME"
     - curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
     - $HOME/.poetry/bin/poetry config virtualenvs.in-project true
     # - $HOME/.poetry/bin/poetry config repositories.foo https://gitlab.com/api/v4/projects/22398142/packages/pypi
@@ -28,7 +30,7 @@ stages:
   script:
       - env
       - $HOME/.poetry/bin/poetry build
-      - $HOME/.poetry/bin/poetry publish -r gl -u "${GITLAB_PYPI_NAME}" -p "${GITLAB_PYPI_PWD}"
+      - $HOME/.poetry/bin/poetry publish -r gl -u "$GITLAB_PYPI_NAME" -p "$GITLAB_PYPI_PWD"
   only:
     - tags
 
