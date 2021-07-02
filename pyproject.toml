@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "jammy"
-version = "0.0.1"
+version = "0.0.1" # This will be overriden by the CI at publish time
 description = "Personal ToolBox"
-authors = ["Qinsheng <qsh.zh27@gmail.com>"]
+authors = ["Qin <qsh.zh27@gmail.com>"]
 license = "MIT"
 packages = [
     { include="jammy" },
@@ -11,6 +11,9 @@ packages = [
     { include="jamviz" },
     { include="jamweb" }
 ]
+
+readme = "README.md"
+documentation = "https://jammy.readthedocs.io/en/latest/"
 
 [tool.poetry.dependencies]
 python = ">=3.7,<3.10"

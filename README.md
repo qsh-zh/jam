@@ -16,4 +16,3 @@ export PATH=$HOME/jam/bin:$PATH
 ## MICS
 
 * The package and framework are inspired from [Jacinle](https://github.com/vacancy/Jacinle) by [vacancy](https://github.com/vacancy), from which I learn and take utility functions shamelessly.
-
