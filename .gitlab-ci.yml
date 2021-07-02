@@ -15,19 +15,18 @@ stages:
 
 .install-deps-template: &install-deps
   before_script:
-    - pip download --dest=${PIP_DOWNLOAD_DIR} poetry
-    - pip install --find-links=${PIP_DOWNLOAD_DIR} poetry
-    - poetry config virtualenvs.in-project true
-    - poetry config repositories.gitlab https://gitlab.com/api/v4/projects/22398142/packages/pypi
-    - poetry config http-basic.gitlab ${GITLAB_PYPI_NAME} ${GITLAB_PYPI_PWD}
-    - poetry install -vv
+    - curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+    - $HOME/.poetry/bin/poetry config virtualenvs.in-project true
+    - $HOME/.poetry/bin/poetry config repositories.gitlab https://gitlab.com/api/v4/projects/22398142/packages/pypi
+    - $HOME/.poetry/bin/poetry config http-basic.gitlab ${GITLAB_PYPI_NAME} ${GITLAB_PYPI_PWD}
+    - $HOME/.poetry/bin/poetry install -vv
 
 .pub-template: &pub
   <<: *install-deps
   stage: pubs
   script:
-      - poetry build
-      - poetry publish -r gitlab
+      - $HOME/.poetry/bin/poetry build
+      - $HOME/.poetry/bin/poetry publish -r gitlab
   only:
     - tags
 
