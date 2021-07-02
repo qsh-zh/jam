@@ -15,13 +15,12 @@ stages:
 
 .install-deps-template: &install-deps
   before_script:
-    - echo "${GITLAB_PYPI_NAME}"
-    - echo "$GITLAB_PYPI_NAME"
+    - sed -i "/^version/s/\(.*\)/version = \"$CI_COMMIT_REF_NAME\"/" pyproject.toml
+    - cat pyproject.toml
     - curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
     - $HOME/.poetry/bin/poetry config virtualenvs.in-project true
     # - $HOME/.poetry/bin/poetry config repositories.foo https://gitlab.com/api/v4/projects/22398142/packages/pypi
     - $HOME/.poetry/bin/poetry config --list
-    # - $HOME/.poetry/bin/poetry config http-basic.foo ${GITLAB_PYPI_NAME} ${GITLAB_PYPI_PWD}
     - $HOME/.poetry/bin/poetry install -vv
 
 .pub-template: &pub
