@@ -30,9 +30,18 @@ stages:
       - env
       - $HOME/.poetry/bin/poetry build
       - $HOME/.poetry/bin/poetry publish -r gl -u "$GITLAB_PYPI_NAME" -p "$GITLAB_PYPI_PWD"
-      - POETRY_PYPI_TOKEN_PYPI=$PYPI_TOKEN $HOME/.poetry/bin/poetry publish
   only:
     - tags
+
+.pub-pypi: &pub
+  <<: *install-deps
+  stage: pubs
+  script:
+      - env
+      - $HOME/.poetry/bin/poetry build
+      - POETRY_PYPI_TOKEN_PYPI=$PYPI_TOKEN $HOME/.poetry/bin/poetry publish
+  only:
+    - /^[0-9]+[.][0-9]+([.][0-9]+)?$/
 
 python-pub:
   <<: *pub
