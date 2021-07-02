@@ -26,8 +26,9 @@ stages:
   <<: *install-deps
   stage: pubs
   script:
+      - env
       - $HOME/.poetry/bin/poetry build
-      - $HOME/.poetry/bin/poetry publish -r gl -u ${GITLAB_PYPI_NAME} -p ${GITLAB_PYPI_PWD}
+      - $HOME/.poetry/bin/poetry publish -r gl -u "${GITLAB_PYPI_NAME}" -p "${GITLAB_PYPI_PWD}"
   only:
     - tags
 
