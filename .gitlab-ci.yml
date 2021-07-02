@@ -1,0 +1,40 @@
+# Global --------------------------
+variables:
+    PIP_DOWNLOAD_DIR: ".pip"
+
+cache:
+  key: "${CI_JOB_NAME}"
+  paths:
+    - .cache/pip
+    - .venv
+
+stages:
+  - pubs
+
+# Jobs templates ------------------
+
+.install-deps-template: &install-deps
+  before_script:
+    - pip download --dest=${PIP_DOWNLOAD_DIR} poetry
+    - pip install --find-links=${PIP_DOWNLOAD_DIR} poetry
+    - poetry config settings.virtualenvs.in-project true
+    - poetry config repositories.gitlab https://gitlab.com/api/v4/projects/22398142/packages/pypi
+    - poetry config http-basic.gitlab ${GITLAB_PYPI_NAME} ${GITLAB_PYPI_PWD}
+    - poetry install -vv
+
+.pub-template: &pub
+  <<: *install-deps
+  stage: pubs
+  script:
+      - poetry build
+      - poetry publish -r gitlab
+  only:
+    - tags
+
+python3.7:
+  <<: *pub
+  image: python:3.7
+
+python3.8:
+  <<: *pub
+  image: python:3.8
