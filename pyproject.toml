@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "jam"
+name = "jammy"
 version = "0.0.1"
 description = "Personal ToolBox"
 authors = ["Qinsheng <qsh.zh27@gmail.com>"]
