@@ -33,10 +33,6 @@ stages:
   only:
     - tags
 
-python3.7:
-  <<: *pub
-  image: python:3.7
-
-python3.8:
+python-pub:
   <<: *pub
   image: python:3.8
