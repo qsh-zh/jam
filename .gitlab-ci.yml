@@ -10,6 +10,7 @@ cache:
 
 stages:
   - pubs
+  - pypi-pub
 
 # Jobs templates ------------------
 
@@ -33,6 +34,20 @@ stages:
       - POETRY_PYPI_TOKEN_PYPI=$PYPI_TOKEN $HOME/.poetry/bin/poetry publish
   only:
     - tags
+
+.pypi-template: &pypi
+  <<: *install-deps
+  stage: pypi-pub
+  script:
+      - $HOME/.poetry/bin/poetry build
+      - POETRY_PYPI_TOKEN_PYPI=$PYPI_TOKEN $HOME/.poetry/bin/poetry publish
+  only:
+      - /^[0-9]+[.][0-9]+([.][0-9]+)?$/
+
+
+py-pub:
+  <<: *pypi
+  image: python3.8
 
 python-pub:
   <<: *pub
