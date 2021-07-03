@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "jammy"
-version = "0.0.1a" # This should be overriden by the CI at publish time
+version = "0.0.1" # This should be overriden by the CI at publish time
 description = "Personal ToolBox"
 authors = ["Qin <qsh.zh27@gmail.com>"]
 license = "MIT"
