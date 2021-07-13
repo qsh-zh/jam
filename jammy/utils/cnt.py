@@ -36,10 +36,10 @@ class CBCnt(BufferCnt):
         super().__init__(thres)
         self.call_back = cb_fn
 
-    def __call__(self, expre, thres=None):
+    def __call__(self, expre, thres=None, *args, **kwargs):
         is_thres = super().__call__(expre, thres)
         if is_thres and self.call_back is not None:
-            self.call_back()
+            self.call_back(*args, **kwargs)
 
 
 class ExitCnt(CBCnt):
