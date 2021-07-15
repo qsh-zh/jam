@@ -2,10 +2,13 @@ import torch
 
 import jamtorch.prototype as jampt
 from jammy.utils.gpu import select_gpu
+from jamtorch.logging import get_logger
 
 __all__ = [
     "set_best_device",
 ]
+
+logger = get_logger()
 # from gpustat import GPUStatCollection
 
 # import subprocess
@@ -19,6 +22,7 @@ __all__ = [
 
 def set_best_device():
     gpu_id = select_gpu()
+    logger.critical(f"select device: CUDA{gpu_id} ")
     torch.cuda.set_device(gpu_id)
     jampt.set_gpu_mode(True, gpu_id)
-    return torch.device(gpu_id)
+    return gpu_id
