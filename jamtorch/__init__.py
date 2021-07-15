@@ -16,4 +16,5 @@ init_main()
 del init_main
 
 if jam_getenv("IMPORT_ALL", "true", "bool"):
-    from jammy.logging import get_logger  # pylint: disable=ungrouped-imports
+    from jamtorch.cuda import set_best_device
+    from jamtorch.logging import get_logger  # pylint: disable=ungrouped-imports
