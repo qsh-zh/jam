@@ -33,6 +33,7 @@ wandb = "^0.10.31"
 matplotlib = "^3.3.0"
 gpustat = "^0.6.0"
 tqdm = "^4.11.0"
+attrs = "^20.3.0"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.13.0"
