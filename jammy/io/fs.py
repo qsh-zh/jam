@@ -1,6 +1,7 @@
 import os
 import os.path as osp
 import glob
+import yaml
 import shutil
 import six
 import contextlib
@@ -37,6 +38,7 @@ __all__ = [
     "load_npz",
     "load_mat",
     "load_pth",
+    "load_yaml",
     "dump",
     "dump_pkl",
     "dump_pklgz",
@@ -129,6 +131,9 @@ def load_pth(file, **kwargs):
 
     return torch.load(file, **kwargs)
 
+def load_yaml(file, **kwargs):
+    with sys_open(file, 'r') as yamlfile:
+        return yaml.load(yamlfile)
 
 def dump_pkl(file, obj, **kwargs):
     with as_file_descriptor(file, "wb") as f:
@@ -139,6 +144,9 @@ def dump_pklgz(file, obj, **kwargs):
     with open_gz(file, "wb") as f:
         return pickle.dump(obj, f)
 
+def dump_yaml(file, obj, **kwargs):
+    with sys_open(file, 'w') as f:
+        return yaml.dump(data, f)
 
 def dump_npy(file, obj, **kwargs):
     return np.save(file, obj)
@@ -203,6 +211,8 @@ io_function_registry.register("load", ".npz", load_npz)
 io_function_registry.register("load", ".mat", load_mat)
 io_function_registry.register("load", ".pth", load_pth)
 io_function_registry.register("load", ".cfg", load_pkl)
+io_function_registry.register("load", ".yaml", load_yaml)
+io_function_registry.register("load", ".yml", load_yaml)
 
 io_function_registry.register("dump", ".pkl", dump_pkl)
 io_function_registry.register("dump", ".pklgz", dump_pklgz)
@@ -211,6 +221,8 @@ io_function_registry.register("dump", ".npz", dump_npz)
 io_function_registry.register("dump", ".mat", dump_mat)
 io_function_registry.register("dump", ".pth", dump_pth)
 io_function_registry.register("dump", ".cfg", dump_pkl)
+io_function_registry.register("dump", ".yaml", dump_yaml)
+io_function_registry.register("dump", ".yml", dump_yaml)
 
 
 io_function_registry.register("extract", ".zip", extract_zip)
