@@ -20,8 +20,8 @@ logger = get_logger()
 #     gpu_stat = GPUStatCollection.new_query()
 
 
-def set_best_device():
-    gpu_id = select_gpu()
+def set_best_device(mem_prior=1.0):
+    gpu_id = select_gpu(mem_prior)
     logger.critical(f"select device: CUDA{gpu_id} ")
     torch.cuda.set_device(gpu_id)
     jampt.set_gpu_mode(True, gpu_id)

@@ -2,15 +2,17 @@ import gpustat
 import numpy as np
 
 
-def select_gpu():
+def select_gpu(mem_prior=1.0):
+    mem_prior = np.clip(mem_prior, 0.0,1.0)
     query = gpustat.new_query()
     if len(query) == 0:
         raise RuntimeError("gpu not available")
     if len(query) == 1:
         return query[0].entry["index"]
 
-    _, utils_list = get_memfree_util()
-    least_utils_id = np.argmin(utils_list)
+    mem_list, utils_list = get_memfree_util()
+    mem, utils = np.array(mem_list), np.array(utils_list)
+    least_utils_id = np.argmin(mem*mem_prior + utils * (1-mem_prior))
 
     return query[least_utils_id].entry["index"]
 
@@ -24,6 +26,6 @@ def gpu_by_util():
 
 def get_memfree_util():
     query = gpustat.new_query()
-    free_space_list = [item.memory_free for item in query]
+    free_space_list = [1.0 * item.memory_free/item.memory_total for item in query]
     utils_list = [item.utilization for item in query]
     return free_space_list, utils_list
