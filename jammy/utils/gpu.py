@@ -13,7 +13,6 @@ def select_gpu(mem_prior=1.0):
     mem_list, utils_list = get_mem_util()
     mem, utils = np.array(mem_list), np.array(utils_list)
     weight = mem*mem_prior + utils * (1-mem_prior)
-    print(weight)
     least_utils_id = np.argmin(weight)
 
     return query[least_utils_id].entry["index"]
