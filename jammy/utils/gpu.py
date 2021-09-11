@@ -10,7 +10,7 @@ def select_gpu(mem_prior=1.0):
     if len(query) == 1:
         return query[0].entry["index"]
 
-    mem_list, utils_list = get_memfree_util()
+    mem_list, utils_list = get_mem_util()
     mem, utils = np.array(mem_list), np.array(utils_list)
     weight = mem*mem_prior + utils * (1-mem_prior)
     print(weight)
@@ -21,13 +21,13 @@ def select_gpu(mem_prior=1.0):
 
 def gpu_by_util():
     query = gpustat.new_query()
-    _, utils_list = get_memfree_util()
+    _, utils_list = get_mem_util()
     ids = np.argsort(utils_list)
     return [query[id_item].entry["index"] for id_item in ids]
 
 
-def get_memfree_util():
+def get_mem_util():
     query = gpustat.new_query()
-    free_space_list = [1.0 * item.memory_free/item.memory_total for item in query]
+    used_space_list = [1.0 * item.memory_used/item.memory_total for item in query]
     utils_list = [item.utilization for item in query]
-    return free_space_list, utils_list
+    return used_space_list, utils_list
