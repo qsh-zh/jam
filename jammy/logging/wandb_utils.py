@@ -91,7 +91,7 @@ class Wandb:
         wandb_args = {
             "project": cfg.wandb.project,
             "resume": "allow",
-            "tags": cfg.wandb.tags,
+            # "tags": cfg.wandb.tags,
             "config": {
                 "run_path": os.getcwd(),
                 "jam_sha": jam_sha,
@@ -101,7 +101,7 @@ class Wandb:
                 "host": socket.gethostname(),
             },
         }
-        for key in ["name", "entity", "notes", "id"]:
+        for key in ["name", "entity", "notes", "id", "tags"]:
             Wandb._set_to_wandb_args(wandb_args, cfg, key)
 
         cfg_dict = OmegaConf.to_container(cfg, resolve=True)
