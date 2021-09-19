@@ -11,6 +11,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 import numpy as np
 import scipy.io as sio
 import six
+import yaml
 
 from jammy.logging import get_logger
 from jammy.utils.enum import JamEnum
@@ -38,6 +39,7 @@ __all__ = [
     "load_npz",
     "load_mat",
     "load_pth",
+    "load_yaml",
     "dump",
     "dump_pkl",
     "dump_pklgz",
@@ -57,6 +59,7 @@ __all__ = [
     "locate_newest_file",
     "move",
     "copy",
+    "replace",
     "io_function_registry",
     "latest_time",
 ]
@@ -66,7 +69,7 @@ sys_open = open
 
 def as_file_descriptor(fd_or_fname, mode="r"):
     if isinstance(fd_or_fname, str):
-        return sys_open(fd_or_fname, mode)
+        return sys_open(fd_or_fname, mode)  # pylint: disable=consider-using-with
     return fd_or_fname
 
 
@@ -77,7 +80,7 @@ def open_h5(file, mode, **kwargs):
 
 
 def open_txt(file, mode, **kwargs):
-    return sys_open(file, mode, **kwargs)
+    return sys_open(file, mode, **kwargs)  # pylint: disable=consider-using-with
 
 
 def open_gz(file, mode):
@@ -132,6 +135,11 @@ def load_pth(file, **kwargs):
     return torch.load(file, **kwargs)
 
 
+def load_yaml(file, **kwargs):
+    with sys_open(file, "r") as yamlfile:
+        return yaml.load(yamlfile)
+
+
 def dump_pkl(file, obj, **kwargs):
     with as_file_descriptor(file, "wb") as f:
         return pickle.dump(obj, f, **kwargs)
@@ -140,6 +148,11 @@ def dump_pkl(file, obj, **kwargs):
 def dump_pklgz(file, obj, **kwargs):
     with open_gz(file, "wb") as f:
         return pickle.dump(obj, f)
+
+
+def dump_yaml(file, obj, **kwargs):
+    with sys_open(file, "w") as f:
+        return yaml.dump(obj, f)
 
 
 def dump_npy(file, obj, **kwargs):
@@ -207,6 +220,8 @@ io_function_registry.register("load", ".npz", load_npz)
 io_function_registry.register("load", ".mat", load_mat)
 io_function_registry.register("load", ".pth", load_pth)
 io_function_registry.register("load", ".cfg", load_pkl)
+io_function_registry.register("load", ".yaml", load_yaml)
+io_function_registry.register("load", ".yml", load_yaml)
 
 io_function_registry.register("dump", ".pkl", dump_pkl)
 io_function_registry.register("dump", ".pklgz", dump_pklgz)
@@ -215,6 +230,8 @@ io_function_registry.register("dump", ".npz", dump_npz)
 io_function_registry.register("dump", ".mat", dump_mat)
 io_function_registry.register("dump", ".pth", dump_pth)
 io_function_registry.register("dump", ".cfg", dump_pkl)
+io_function_registry.register("dump", ".yaml", dump_yaml)
+io_function_registry.register("dump", ".yml", dump_yaml)
 
 
 io_function_registry.register("extract", ".zip", extract_zip)
@@ -365,7 +382,15 @@ def copy(src, dst):
 
 
 def move(src, dst):
-    return os.rename(src, dst)
+    if osp.exists(src):
+        os.rename(src, dst)
+
+
+def replace(src, dst):
+    if osp.exists(src):
+        if osp.exists(dst):
+            remove(dst)
+        os.replace(src, dst)
 
 
 def locate_newest_file(dirname, pattern):

@@ -8,6 +8,7 @@ parser.add_argument("--fmt", required=True, help="glob foramt eg: 'img_*.png'")
 parser.add_argument("--out", default="output.gif")
 args = parser.parse_args()
 
+# TODO: consider other implementations, https://github.com/wkentaro/video-cli
 
 # https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html#gif
 def fp2gif(fp_in, fp_out):
