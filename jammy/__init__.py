@@ -1,4 +1,4 @@
-import jammy.utils.git as git
+from jammy.utils import git
 from jammy.utils.env import jam_getenv
 from jammy.utils.init import init_main
 
@@ -40,3 +40,11 @@ if jam_getenv("IMPORT_ALL", "true", "bool"):
         synchronized,
         try_run,
     )
+
+
+def get_jam_repo_git():
+    """get git info running jammy
+
+    :return: (jam_sha, jam_diff)
+    """
+    return git.log_repo(__file__)
