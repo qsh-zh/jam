@@ -57,8 +57,8 @@ html_theme = "click"
 html_theme_options = {"index_sidebar_logo": False}
 html_context = {
     "project_links": [
-        ProjectLink("PyPI Releases", "https://pypi.org/project/jam-pypi/"),
-        ProjectLink("Source Code", "https://gitlab.com/zqsh419/pypi-demo"),
+        ProjectLink("PyPI Releases", "https://pypi.org/project/jammy/"),
+        ProjectLink("Source Code", "https://gitlab.com/zqsh419/jam"),
     ]
 }
 html_sidebars = {
