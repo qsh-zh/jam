@@ -41,6 +41,10 @@ pre-commit = "^2.13.0"
 isort = "^5.8.0"
 black = "^21.5b1"
 pylint = "^2.8.3"
+Sphinx = "^4.2.0"
+Pallets-Sphinx-Themes = "^2.0.1"
+sphinx-tabs = "^3.2.0"
+m2r2 = "^0.3.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

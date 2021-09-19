@@ -23,6 +23,7 @@ __all__ = [
 
 def get_2dshape(x, default=None, type=int):
     """Convert a value or a tuple to a tuple of length 2.
+    
     Args:
         x: a value of type `type`, or a tuple of length 2.
         default: default value.
@@ -79,6 +80,7 @@ def get_4dshape(x, default=None, type=int):
 def astuple(arr_like):
     """Convert a sequence or a single value to a tuple. This method differ from the system method `tuple` in that
     a single value (incl. int, string, bytes) will be converted to a tuple of length 1.
+
     Args:
         arr_like: a sequence or a single value.
 

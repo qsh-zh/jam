@@ -1,0 +1,4 @@
+Sphinx
+Pallets-Sphinx-Themes
+sphinx-tabs
+m2r2

@@ -111,7 +111,7 @@ class TestTrainer(Trainer):
         pass
 
     # TODO: should update epoch:start trigger, it should be desing as a call_list, auto stack it
-    train_sampler
+    # train_sampler
 
     # TODO: update ddp env
     def export_env(self):
