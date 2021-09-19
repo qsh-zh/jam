@@ -22,7 +22,7 @@ stages:
     - $HOME/.poetry/bin/poetry config virtualenvs.in-project true
     - $HOME/.poetry/bin/poetry config repositories.gl https://gitlab.com/api/v4/projects/27867877/packages/pypi
     - $HOME/.poetry/bin/poetry config --list
-    - $HOME/.poetry/bin/poetry install -vv
+    - $HOME/.poetry/bin/poetry install --no-dev -vv
 
 .pub-template: &pub
   <<: *install-deps
@@ -46,7 +46,7 @@ stages:
 
 py-pub:
   <<: *pypi
-  image: python3.8
+  image: python:3.8
 
 python-pub:
   <<: *pub

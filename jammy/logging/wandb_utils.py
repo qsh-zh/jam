@@ -4,7 +4,7 @@ import socket
 
 from omegaconf import OmegaConf
 
-import jammy.utils.git as git
+from jammy.utils import git
 
 __all__ = ["Wandb", "WandbUrls"]
 
@@ -91,7 +91,7 @@ class Wandb:
         wandb_args = {
             "project": cfg.wandb.project,
             "resume": "allow",
-            "tags": cfg.wandb.tags,
+            # "tags": cfg.wandb.tags,
             "config": {
                 "run_path": os.getcwd(),
                 "jam_sha": jam_sha,
@@ -101,7 +101,7 @@ class Wandb:
                 "host": socket.gethostname(),
             },
         }
-        for key in ["name", "entity", "notes", "id"]:
+        for key in ["name", "entity", "notes", "id", "tags"]:
             Wandb._set_to_wandb_args(wandb_args, cfg, key)
 
         cfg_dict = OmegaConf.to_container(cfg, resolve=True)
@@ -113,7 +113,7 @@ class Wandb:
         return wandb_args
 
     @staticmethod
-    def launch(cfg, launch: bool, is_hydra: bool = False, dump_meta: bool = True):
+    def launch(cfg, launch: bool, is_hydra: bool = True, dump_meta: bool = True):
         Wandb.IS_HYD = is_hydra
         if launch:
             import wandb
@@ -138,6 +138,7 @@ class Wandb:
         if dump_meta:
             with open("meta.yaml", "w") as fp:
                 OmegaConf.save(config=OmegaConf.create(Wandb.cfg), f=fp.name)
+        return Wandb.run
 
     @staticmethod
     def add_file(file_path: str):
