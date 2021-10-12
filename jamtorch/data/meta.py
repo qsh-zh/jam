@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-import torch.utils.data as data
+from torch.utils import data
 
 from jammy.random.rng import gen_rng
 
@@ -8,7 +8,7 @@ __all__ = ["get_batch", "get_subset", "num_to_groups"]
 
 
 def get_batch_loader(data_loader):
-    return next(iter(data_loader))[0]
+    return next(iter(data_loader))
 
 
 def get_batch(fdata, size=10):

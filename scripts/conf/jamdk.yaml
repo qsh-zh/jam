@@ -15,3 +15,5 @@ ssh: true
 file: container.jamdk
 network: host
 memory:
+
+extra:
