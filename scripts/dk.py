@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
-import os, sys
+# pylint: disable=global-variable-not-assigned
 import functools
-from omegaconf import DictConfig, OmegaConf
-import hydra
+import os
 import os.path as osp
 from subprocess import Popen
+
+import hydra
+from omegaconf import DictConfig, OmegaConf
+
 from jammy.logging import get_logger
 
 logger = get_logger()
@@ -107,6 +110,16 @@ def extra_mount(cfg):
 
 
 @jamdk_wrapper
+def extra_aug(cfg):
+    if cfg.extra is not None:
+        rtn = []
+        for key, value in cfg.extra.items():
+            rtn.append(f"--{key}={value}")
+        return rtn
+    return None
+
+
+@jamdk_wrapper
 def container_name(cfg):
     if cfg.name is not None:
         return ["--name", cfg.name]
@@ -128,8 +141,8 @@ def my_app(cfg: DictConfig) -> None:
         item(cfg)
     logger.debug(dk_args)
     logger.info(f"stating {cfg.name}" + "\n".join(print_args))
-    Popen(dk_args)
+    Popen(dk_args)  # pylint: disable=consider-using-with
 
 
 if __name__ == "__main__":
-    my_app()
+    my_app()  # pylint: disable=no-value-for-parameter
