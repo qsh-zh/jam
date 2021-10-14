@@ -7,10 +7,9 @@ from functools import partial, update_wrapper
 import hydra
 from omegaconf import DictConfig, OmegaConf
 
-import jammy.io as io
-import jammy.utils.imp as imp
+from jammy import io
 from jammy.logging import get_logger
-from jammy.utils.env import jam_getenv
+from jammy.utils import imp
 
 logger = get_logger()
 
@@ -104,9 +103,10 @@ def flatten_dict(cfg):
     return rtn
 
 
-def link_hyd_run(dst_fname=".latest_exp"):
+def link_hyd_run(dst_fname=".latest_exp", proj_path=None):
     exp_folder = os.getcwd()
-    proj_path = jam_getenv("proj_path")
+    if proj_path is None:
+        proj_path = hydra.utils.get_original_cwd()
     io.link(exp_folder, osp.join(proj_path, dst_fname), use_relative_path=False)
     logger.info(f"{exp_folder} ==>> {osp.join(proj_path, dst_fname)}")
 
