@@ -2,19 +2,25 @@
 
 <p align="center">
   <a href="https://pypi.org/project/jammy/">
-    <img src="https://img.shields.io/pypi/v/jammy" alt="PyPI" />
+    <img src="https://img.shields.io/pypi/v/jammy?style=for-the-badge" alt="PyPI" />
   </a>
   <a href="#">
-    <img src="https://img.shields.io/pypi/l/jammy" alt="PyPI - License" />
+    <img src="https://img.shields.io/pypi/l/jammy?style=for-the-badge" alt="PyPI - License" />
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/-github-grey?style=for-the-badge&logo=github" alt="GitHub code" />
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/-gitlab-grey?style=for-the-badge&logo=gitlab" alt="GitLab code" />
   </a>
   <a href="https://jammy.readthedocs.io/en/stable/index.html">
-    <img src="https://img.shields.io/readthedocs/jammy" alt="Read the Docs" />
+    <img src="https://img.shields.io/readthedocs/jammy?style=for-the-badge" alt="Read the Docs" />
   </a>
   <a href="#">
-    <img src="https://img.shields.io/pypi/pyversions/jammy" alt="PyPI - Python Version" />
+    <img src="https://img.shields.io/pypi/pyversions/jammy?style=for-the-badge" alt="PyPI - Python Version" />
   </a>
   <a href="https://github.com/psf/black">
-    <img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code style: black" />
+    <img src="https://img.shields.io/badge/code%20style-black-000000.svg?style=for-the-badge" alt="Code style: black" />
   </a>
   <p align="center">
     <i>A personal toolbox by <a href="https://qsh-zh.github.io/">Qsh.zh</a>.</i>
