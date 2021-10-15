@@ -8,10 +8,10 @@
         <a href="#">
             <img src="https://img.shields.io/pypi/l/jammy?style=for-the-badge" alt="PyPI - License" />
         </a>
-        <a href="#">
+        <a href="https://github.com/qsh-zh/jam">
             <img src="https://img.shields.io/badge/-github-grey?style=for-the-badge&logo=github" alt="GitHub code" />
         </a>
-        <a href="#">
+        <a href="https://gitlab.com/qsh.zh/jam">
             <img src="https://img.shields.io/badge/-gitlab-grey?style=for-the-badge&logo=gitlab" alt="GitLab code" />
         </a>
         <a href="https://jammy.readthedocs.io/en/stable/index.html">
