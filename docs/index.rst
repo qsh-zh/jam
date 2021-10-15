@@ -33,6 +33,21 @@
 Usage
 ~~~~~
 
+setup
+^^^^^
+
+-  For core package, run ``pip install jammy``
+-  To access functions in ``bin``
+
+   .. code:: shell
+
+       git clone https://gitlab.com/qsh.zh/jam.git --recursive
+       export PATH=<path_to_jam>/bin:$PATH
+       # run python program
+       jam-run main.py
+       jam-crun 1 main.py # use second nvidia gpu
+
+
 sample of io
 ^^^^^^^^^^^^
 
