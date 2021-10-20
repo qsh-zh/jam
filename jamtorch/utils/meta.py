@@ -1,19 +1,20 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 # File   : meta.py
-# Author : Jiayuan Mao
-# Email  : maojiayuan@gmail.com
+# Author : Qinsheng
+# Email  : qsh.27@gmail.com
 # Date   : 01/24/2018
 #
-# This file is part of Jacinle.
+# This file modified based on Jacinle.
 # Distributed under terms of the MIT license.
 
-import six
 import functools
-import numpy as np
 
+import numpy as np
+import six
 import torch
 import torch.distributed as dist
+
 from jammy.utils.meta import stmap
 
 SKIP_TYPES = six.string_types
@@ -23,50 +24,43 @@ __all__ = [
     "as_numpy",
     "as_float",
     "as_cuda",
+    "as_device",
     "as_cpu",
     "as_detached",
     "is_master",
 ]
 
 
-def _as_tensor(o):
-    from torch.autograd import Variable
-
-    if isinstance(o, SKIP_TYPES):
-        return o
-    if isinstance(o, Variable):
-        return o
-    if torch.is_tensor(o):
-        return o
-    return torch.from_numpy(np.array(o))
+def _as_tensor(cur_obj):
+    if isinstance(cur_obj, SKIP_TYPES):
+        return cur_obj
+    if torch.is_tensor(cur_obj):
+        return cur_obj
+    return torch.from_numpy(np.array(cur_obj))
 
 
 def as_tensor(obj):
     return stmap(_as_tensor, obj)
 
 
-def _as_numpy(o):
-    from torch.autograd import Variable
-
-    if isinstance(o, SKIP_TYPES):
-        return o
-    if isinstance(o, Variable):
-        o = o
-    if torch.is_tensor(o):
-        return o.cpu().numpy()
-    return np.array(o)
+def _as_numpy(cur_obj):
+    if isinstance(cur_obj, SKIP_TYPES):
+        return cur_obj
+    if torch.is_tensor(cur_obj):
+        return cur_obj.cpu().numpy()
+    return np.array(cur_obj)
 
 
 def as_numpy(obj):
     return stmap(_as_numpy, obj)
 
 
-def _as_float(o):
-    if isinstance(o, SKIP_TYPES):
-        return o
-    if torch.is_tensor(o):
-        return o.item()
-    arr = as_numpy(o)
+def _as_float(cur_obj):
+    if isinstance(cur_obj, SKIP_TYPES):
+        return cur_obj
+    if torch.is_tensor(cur_obj):
+        return cur_obj.item()
+    arr = as_numpy(cur_obj)
     assert arr.size == 1
     return float(arr)
 
@@ -75,36 +69,37 @@ def as_float(obj):
     return stmap(_as_float, obj)
 
 
-def _as_cpu(o):
-    from torch.autograd import Variable
-
-    if isinstance(o, Variable) or torch.is_tensor(o):
-        return o.cpu()
-    return o
-
-
-def as_cpu(obj):
-    return stmap(_as_cpu, obj)
-
-
-def _as_cuda(o):
-    from torch.autograd import Variable
-
-    if isinstance(o, Variable) or torch.is_tensor(o):
-        return o.cuda()
-    return o
+def _as_cuda(cur_obj):
+    if torch.is_tensor(cur_obj):
+        return cur_obj.cuda()
+    return cur_obj
 
 
 def as_cuda(obj):
     return stmap(_as_cuda, obj)
 
 
-def _as_detached(o, clone=False):
-    if torch.is_tensor(o):
+def _as_device(cur_obj, device):
+    if isinstance(cur_obj, SKIP_TYPES):
+        return cur_obj
+    if torch.is_tensor(cur_obj):
+        cur_obj.to(device)
+    return cur_obj
+
+
+def as_device(obj, device=torch.device("cuda:0")):
+    return stmap(functools.partial(_as_device, device=device), obj)
+
+
+as_cpu = functools.partial(as_device, device=torch.device("cpu"))
+
+
+def _as_detached(cur_obj, clone=False):
+    if torch.is_tensor(cur_obj):
         if clone:
-            return o.clone().detach()
-        return o.detach()
-    return o
+            return cur_obj.clone().detach()
+        return cur_obj.detach()
+    return cur_obj
 
 
 def as_detached(obj, clone=False):
