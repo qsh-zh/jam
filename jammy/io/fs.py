@@ -1,6 +1,7 @@
 import contextlib
 import glob
 import gzip
+import json
 import os
 import os.path as osp
 import pickle
@@ -19,6 +20,8 @@ from jammy.utils.filelock import FileLock
 from jammy.utils.registry import CallbackRegistry, RegistryGroup
 
 from .common import get_ext
+
+# pylint: disable=consider-using-f-string
 
 logger = get_logger()
 
@@ -40,13 +43,14 @@ __all__ = [
     "load_mat",
     "load_pth",
     "load_yaml",
-    "dump",
+    "load_json",
     "dump_pkl",
     "dump_pklgz",
     "dump_npy",
     "dump_npz",
     "dump_mat",
     "dump_pth",
+    "dump_json",
     "safe_dump",
     "compress",
     "compress_zip",
@@ -135,6 +139,11 @@ def load_pth(file, **kwargs):
     return torch.load(file, **kwargs)
 
 
+def load_json(file, **kwargs):
+    with sys_open(file, "r") as fp:
+        return json.load(fp)
+
+
 def load_yaml(file, **kwargs):
     with sys_open(file, "r") as yamlfile:
         return yaml.load(yamlfile)
@@ -153,6 +162,11 @@ def dump_pklgz(file, obj, **kwargs):
 def dump_yaml(file, obj, **kwargs):
     with sys_open(file, "w") as f:
         return yaml.dump(obj, f)
+
+
+def dump_json(file, obj, **kwargs):
+    with sys_open(file, "w") as f:
+        return json.dump(obj, f)
 
 
 def dump_npy(file, obj, **kwargs):
@@ -219,9 +233,11 @@ io_function_registry.register("load", ".npy", load_npy)
 io_function_registry.register("load", ".npz", load_npz)
 io_function_registry.register("load", ".mat", load_mat)
 io_function_registry.register("load", ".pth", load_pth)
+io_function_registry.register("load", ".ckpt", load_pth)
 io_function_registry.register("load", ".cfg", load_pkl)
 io_function_registry.register("load", ".yaml", load_yaml)
 io_function_registry.register("load", ".yml", load_yaml)
+io_function_registry.register("load", ".json", load_json)
 
 io_function_registry.register("dump", ".pkl", dump_pkl)
 io_function_registry.register("dump", ".pklgz", dump_pklgz)
@@ -232,6 +248,7 @@ io_function_registry.register("dump", ".pth", dump_pth)
 io_function_registry.register("dump", ".cfg", dump_pkl)
 io_function_registry.register("dump", ".yaml", dump_yaml)
 io_function_registry.register("dump", ".yml", dump_yaml)
+io_function_registry.register("dump", ".json", dump_json)
 
 
 io_function_registry.register("extract", ".zip", extract_zip)
