@@ -1,8 +1,11 @@
+import functools
+
 import numpy as np
 import torch
 from torch.utils import data
 
 from jammy.random.rng import gen_rng
+from jamtorch.utils.pytree import merge_tree
 
 __all__ = ["get_batch", "get_subset", "num_to_groups"]
 
@@ -36,3 +39,15 @@ def num_to_groups(num, divisor):
     if remainder > 0:
         arr.append(remainder)
     return arr
+
+
+def batch_run(func, batch_size=100):
+    @functools.wraps(func)
+    def new_func(total_batch, *args, **kwargs):
+        arr = num_to_groups(total_batch, batch_size)
+        rtn = []
+        for cur_batch_size in arr:
+            rtn.append(func(cur_batch_size, *args, **kwargs))
+        return merge_tree(rtn)
+
+    return new_func
