@@ -3,7 +3,7 @@ from typing import Tuple
 import numpy as np
 
 
-class NpCircularBuffer:
+class NpRingBuffer:
     def __init__(self, item_shape: Tuple, max_size: int = 10000):
         self.max_size = max_size
         self._data = np.zeros((max_size, *item_shape))
@@ -34,7 +34,7 @@ class NpCircularBuffer:
 
 
 if __name__ == "__main__":
-    buffer = NpCircularBuffer((3,), max_size=10)
+    buffer = NpRingBuffer((3,), max_size=10)
     data = np.repeat(np.arange(15).reshape(-1, 1), 3, axis=-1)
     buffer.add_batch(data)
     print(buffer.data)

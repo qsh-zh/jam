@@ -3,7 +3,7 @@ from typing import Tuple
 import torch as th
 
 
-class TorchCircularBuffer:
+class TorchRingBuffer:
     def __init__(self, item_shape: Tuple, max_size: int = 10000):
         self.max_size = max_size
         self._data = th.zeros((max_size, *item_shape))
@@ -37,7 +37,7 @@ class TorchCircularBuffer:
 
 
 if __name__ == "__main__":
-    buffer = TorchCircularBuffer((3,), max_size=10)
+    buffer = TorchRingBuffer((3,), max_size=10)
     data = th.arange(15).view(-1, 1).expand((15, 3))
     buffer.add_batch(data)
     print(buffer.data)
