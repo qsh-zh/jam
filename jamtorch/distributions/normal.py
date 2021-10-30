@@ -4,8 +4,9 @@ import numpy as np
 import torch
 from torch import nn
 
+from jamtorch.utils import ts_ops
+
 from .base import Distribution
-import jamtorch.utils.ts_ops as ts_ops
 
 
 class StandardNormal(Distribution):
@@ -15,10 +16,11 @@ class StandardNormal(Distribution):
         super().__init__()
         self._shape = torch.Size(shape)
 
-        self.register_buffer("_log_z",
-                             torch.tensor(0.5 * np.prod(shape) * np.log(2 * np.pi),
-                                          dtype=torch.float64),
-                             persistent=False)
+        self.register_buffer(
+            "_log_z",
+            torch.tensor(0.5 * np.prod(shape) * np.log(2 * np.pi), dtype=torch.float64),
+            persistent=False,
+        )
 
     def _log_prob(self, inputs, context):
         # Note: the context is ignored.
@@ -28,8 +30,7 @@ class StandardNormal(Distribution):
                     self._shape, inputs.shape[1:]
                 )
             )
-        neg_energy = -0.5 * \
-            ts_ops.sum_except_batch(inputs ** 2, num_batch_dims=1)
+        neg_energy = -0.5 * ts_ops.sum_except_batch(inputs ** 2, num_batch_dims=1)
         return neg_energy - self._log_z
 
     def _sample(self, num_samples, context):
@@ -38,8 +39,9 @@ class StandardNormal(Distribution):
         else:
             # The value of the context is ignored, only its size and device are taken into account.
             context_size = context.shape[0]
-            samples = torch.randn(context_size * num_samples, *self._shape,
-                                  device=context.device)
+            samples = torch.randn(
+                context_size * num_samples, *self._shape, device=context.device
+            )
             return ts_ops.split_leading_dim(samples, [context_size, num_samples])
 
     def _mean(self, context):
@@ -67,10 +69,11 @@ class ConditionalDiagonalNormal(Distribution):
             self._context_encoder = lambda x: x
         else:
             self._context_encoder = context_encoder
-        self.register_buffer("_log_z",
-                             torch.tensor(0.5 * np.prod(shape) * np.log(2 * np.pi),
-                                          dtype=torch.float64),
-                             persistent=False)
+        self.register_buffer(
+            "_log_z",
+            torch.tensor(0.5 * np.prod(shape) * np.log(2 * np.pi), dtype=torch.float64),
+            persistent=False,
+        )
 
     def _compute_params(self, context):
         """Compute the means and log stds form the context."""
@@ -106,9 +109,7 @@ class ConditionalDiagonalNormal(Distribution):
 
         # Compute log prob.
         norm_inputs = (inputs - means) * torch.exp(-log_stds)
-        log_prob = -0.5 * ts_ops.sum_except_batch(
-            norm_inputs ** 2, num_batch_dims=1
-        )
+        log_prob = -0.5 * ts_ops.sum_except_batch(norm_inputs ** 2, num_batch_dims=1)
         log_prob -= ts_ops.sum_except_batch(log_stds, num_batch_dims=1)
         log_prob -= self._log_z
         return log_prob
@@ -122,8 +123,9 @@ class ConditionalDiagonalNormal(Distribution):
 
         # Generate samples.
         context_size = context.shape[0]
-        noise = torch.randn(context_size * num_samples, *
-                            self._shape, device=means.device)
+        noise = torch.randn(
+            context_size * num_samples, *self._shape, device=means.device
+        )
         samples = means + stds * noise
         return ts_ops.split_leading_dim(samples, [context_size, num_samples])
 
@@ -135,7 +137,7 @@ class ConditionalDiagonalNormal(Distribution):
 class DiagonalNormal(Distribution):
     """A diagonal multivariate Normal with trainable parameters."""
 
-    def __init__(self, shape):
+    def __init__(self, shape, mean=None, std=None):
         """Constructor.
 
         Args:
@@ -145,12 +147,18 @@ class DiagonalNormal(Distribution):
         """
         super().__init__()
         self._shape = torch.Size(shape)
-        self.mean_ = nn.Parameter(torch.zeros(shape).reshape(1, -1))
-        self.log_std_ = nn.Parameter(torch.zeros(shape).reshape(1, -1))
-        self.register_buffer("_log_z",
-                             torch.tensor(0.5 * np.prod(shape) * np.log(2 * np.pi),
-                                          dtype=torch.float64),
-                             persistent=False)
+        if mean is None:
+            self.mean_ = nn.Parameter(torch.zeros(shape).reshape(1, -1))
+        else:
+            assert isinstance(mean, torch.Tensor)
+            assert np.prod(shape) == mean.nelement()
+            self.mean_ = nn.Parameter(mean.view(1, -1))
+        if std is None:
+            self.log_std_ = nn.Parameter(torch.zeros(shape).reshape(1, -1))
+        else:
+            assert isinstance(std, torch.Tensor)
+            assert np.prod(shape) == std.nelement()
+            self.log_std_ = nn.Parameter(torch.log(std.view(1, -1)))
 
     def _log_prob(self, inputs, context):
         if inputs.shape[1:] != self._shape:
@@ -166,11 +174,9 @@ class DiagonalNormal(Distribution):
 
         # Compute log prob.
         norm_inputs = (inputs - means) * torch.exp(-log_stds)
-        log_prob = -0.5 * ts_ops.sum_except_batch(
-            norm_inputs ** 2, num_batch_dims=1
-        )
+        log_prob = -0.5 * ts_ops.sum_except_batch(norm_inputs ** 2, num_batch_dims=1)
         log_prob -= ts_ops.sum_except_batch(log_stds, num_batch_dims=1)
-        log_prob -= self._log_z
+        log_prob -= self._log_z()
         return log_prob
 
     def _sample(self, num_samples, context):
@@ -178,3 +184,7 @@ class DiagonalNormal(Distribution):
 
     def _mean(self, context):
         return self.mean
+
+    def _log_z(self):
+        const = 0.5 * np.prod(self._shape) * np.log(2 * np.pi)
+        return const + 0.5 * torch.log(torch.prod(torch.exp(self.log_std_)))

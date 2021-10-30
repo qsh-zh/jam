@@ -1,1 +1,2 @@
-from .container import fstack,fstack_pad
+from .buffer_storage import NpCircularBuffer
+from .container import stack, stack_pad
