@@ -28,6 +28,7 @@ __all__ = [
     "as_cpu",
     "as_detached",
     "is_master",
+    "disable_grad",
 ]
 
 
@@ -108,3 +109,8 @@ def as_detached(obj, clone=False):
 
 def is_master():
     return not dist.is_initialized() or dist.get_rank() == 0
+
+
+def disable_grad(module):
+    for param in module.parameters():
+        param.requires_grad = False
