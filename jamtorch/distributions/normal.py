@@ -175,7 +175,7 @@ class DiagonalNormal(Distribution):
         # Compute log prob.
         norm_inputs = (inputs - means) * torch.exp(-log_stds)
         log_prob = -0.5 * ts_ops.sum_except_batch(norm_inputs ** 2, num_batch_dims=1)
-        log_prob -= ts_ops.sum_except_batch(log_stds, num_batch_dims=1)
+        # log_prob -= ts_ops.sum_except_batch(log_stds, num_batch_dims=1)
         log_prob -= self._log_z()
         return log_prob
 
@@ -187,4 +187,4 @@ class DiagonalNormal(Distribution):
 
     def _log_z(self):
         const = 0.5 * np.prod(self._shape) * np.log(2 * np.pi)
-        return const + 0.5 * torch.log(torch.prod(torch.exp(self.log_std_)))
+        return const + torch.log(torch.prod(torch.exp(self.log_std_)))
