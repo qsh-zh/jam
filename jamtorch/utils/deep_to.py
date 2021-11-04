@@ -4,6 +4,8 @@ import ctypes
 import torch
 
 
+# credit
+# https://github.com/pyro-ppl/pyro/blob/beddc1f1a193d7f03bd588c9d6afe389bbd2d10c/pyro/distributions/util.py
 class _DeepToMemo(dict):
     def __init__(self, to_args, to_kwargs):
         super().__init__()
