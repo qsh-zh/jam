@@ -2,29 +2,10 @@
 #vendors:
     # ReservoirSample-PyTorch:
     #     root: vendors/pytorch_reservoir
-    # AdvancedIndexing-PyTorch:
-    #     root: vendors/AdvancedIndexing-PyTorch
-    # SynchronizedBatchNorm-PyTorch:
-    #     root: vendors/Synchronized-BatchNorm-PyTorch
-    # PreciseRoIPooling-PyTorch:
-    #     root: vendors/PreciseRoIPooling/pytorch
-    # SceneGraphParser:
-    #     root: vendors/SceneGraphParser
-    # JacMLDash:
-    #     root: vendors/JacMLDash
-    # PyGCO:
-    #     root: vendors/PyGCO
-    # PyPatchMatch:
-    #     root: vendors/PyPatchMatch
 
 # system:
 #    envs:
-#      WANDB_API_KEY: e63a92374c00b1da163fabe6331f38a8efa4fed0
-#      _NTF_SENDER: zqs.8@qq.com
-#      _NTF_RECEIVER: zqsh19970218@gmail.com
-#      _NTF_SMTP_URL: smtp.qq.com
-#      _NTF_SMTP_PORT: 25
-#      _NTF_SMTP_KEY: pjbkrntksmjvhigi
+#      WANDB_API_KEY: abc
 
 #conda:
    #env: base
