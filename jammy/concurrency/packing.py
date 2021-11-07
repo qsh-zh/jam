@@ -46,7 +46,7 @@ try:
 except ImportError:
     dumpb_msgpack = loadb_msgpack = None
 
-# pylint: disable=unnecessary-lambda
+# pylint: disable=unnecessary-lambda, invalid-envvar-default
 
 try:
     import pyarrow
@@ -135,7 +135,7 @@ def dumpb(obj, *args, backend=None, **kwargs):
 
 
 def _initialize_backend():
-    set_default_backend(os.getenv("JAM_PACKING_BACKEND", str(_PackingBackend.PICKLE)))
+    set_default_backend(os.getenv("JAM_PACKING_BACKEND", _PackingBackend.PICKLE))
 
 
 _initialize_backend()

@@ -1,11 +1,11 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File   : cs.py
-# Author : Jiayuan Mao
-# Email  : maojiayuan@gmail.com
-# Date   : 01/22/2018
+# File   : zmq_utils.py
+# Author : Jiayuan Mao, Qsh.Zh
+# Email  : qsh.zh27@gmail.com
+# Date   : 11/17/2021
 #
-# This file is part of Jacinle.
+# Qinsheng modifies based on Jacinle.
 # Distributed under terms of the MIT license.
 
 import collections
@@ -23,7 +23,7 @@ from jammy.utils.registry import CallbackRegistry
 
 from .utils import get_local_addr
 
-logger = get_logger(__file__)
+logger = get_logger()
 
 __all__ = ["ServerPipe", "ClientPipe", "make_cs_pair"]
 

@@ -11,9 +11,8 @@
 import functools
 
 from jammy.logging import get_logger
-from .naming import func_name
 
-logger = get_logger(__file__)
+logger = get_logger()
 
 __all__ = ["deprecated"]
 
