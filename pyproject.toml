@@ -36,6 +36,10 @@ tqdm = "^4.11.0"
 attrs = "^20.3.0"
 h5py = "^3.4.0"
 torchinfo = "^1.5.3"
+msgpack = "^1.0.2"
+msgpack-numpy = "^0.4.7"
+pyarrow = "^6.0.0"
+pyzmq = "^22.3.0"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.13.0"
