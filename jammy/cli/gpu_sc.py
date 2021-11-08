@@ -18,6 +18,7 @@ def req_util(pipe, identifier, num_gpu: int = 1):
     else:
         msg = gpu_list[:num_gpu]
     pipe.send(identifier, msg)
+    time.sleep(3)
 
 
 def len_available_gpu(pipe, identifier, *args):
