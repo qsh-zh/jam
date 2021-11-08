@@ -1,6 +1,6 @@
 import socket
 
-__all__ = ["find_free_port", "get_local_addr"]
+__all__ = ["find_free_port", "get_local_addr", "is_port_used"]
 
 
 def find_free_port():
@@ -34,3 +34,8 @@ def get_local_addr():
             return socket.gethostbyname(socket.gethostname())
         except Exception:  # pylint: disable=broad-except
             return "127.0.0.1"
+
+
+def is_port_used(port: int):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(("locahost", port)) == 0

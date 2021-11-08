@@ -19,11 +19,13 @@ def answer(pipe, identifier, inp):
 
 
 def main():
-    server = ServerPipe("server")
+    server = ServerPipe("server", mode="ipc")
     server.dispatcher.register("calc", answer)
     with server.activate():
         print("Client command:")
-        print("jam-run client.py", *server.conn_info)  # pylint: disable=not-an-iterable
+        print(
+            "jam-run sc_client.py", *server.conn_info  # pylint: disable=not-an-iterable
+        )
         while True:
             time.sleep(1)
 
