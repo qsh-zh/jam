@@ -21,8 +21,6 @@ from jammy.utils.registry import CallbackRegistry, RegistryGroup
 
 from .common import get_ext
 
-# pylint: disable=consider-using-f-string
-
 logger = get_logger()
 
 __all__ = [
@@ -44,6 +42,7 @@ __all__ = [
     "load_pth",
     "load_yaml",
     "load_json",
+    "dump",
     "dump_pkl",
     "dump_pklgz",
     "dump_npy",
