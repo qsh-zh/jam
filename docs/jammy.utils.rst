@@ -220,6 +220,22 @@ jammy.utils.printing module
    :undoc-members:
    :show-inheritance:
 
+jammy.utils.process module
+--------------------------
+
+.. automodule:: jammy.utils.process
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+jammy.utils.profiler module
+---------------------------
+
+.. automodule:: jammy.utils.profiler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 jammy.utils.registry module
 ---------------------------
 
