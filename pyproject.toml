@@ -40,6 +40,9 @@ msgpack = "^1.0.2"
 msgpack-numpy = "^0.4.7"
 pyarrow = "^6.0.0"
 pyzmq = "^22.3.0"
+line-profiler = "^3.3.1"
+ubelt = "^0.10.2"
+parse = "^1.19.0"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.13.0"
