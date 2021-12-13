@@ -8,13 +8,14 @@
 # Qinsheng Zhang modified based on Jacinle.
 # Distributed under terms of the MIT license.
 
-import io
-import sys
-import numpy as np
 import collections
 import contextlib
-
+import io
+import sys
 import threading
+
+import numpy as np
+
 from .registry import LockRegistry
 
 __all__ = [
@@ -27,6 +28,7 @@ __all__ = [
     "print_to_string",
     "print_to",
     "print2format",
+    "bubbletext",
 ]
 
 
@@ -58,7 +60,7 @@ def format_printable_data(data, float_format=_DEFAULT_FLOAT_FORMAT):
         return str(data)
 
 
-def stprint(
+def stprint(  # pylint: disable=too-many-arguments
     data,
     key=None,
     indent=0,
@@ -155,7 +157,7 @@ def stformat(data, key=None, indent=0, max_depth=100, **kwargs):
     )
 
 
-def kvprint(
+def kvprint(  # pylint: disable=too-many-arguments
     data,
     indent=0,
     sep=" : ",
@@ -195,7 +197,7 @@ def kvformat(data, indent=0, sep=" : ", end="\n", max_key_len=None):
     )
 
 
-class PrintToStringContext(object):
+class PrintToStringContext:
     __global_locks = LockRegistry()
 
     def __init__(self, target="STDOUT", stream=None, need_lock=True):
@@ -262,3 +264,28 @@ def print2format(print_func):
         return value
 
     return format_func
+
+
+def bubbletext(text, font="cybermedium"):
+    """
+    Uses pyfiglet to create bubble text.
+    Args:
+        font (str): default=cybermedium, other fonts include: cybersmall and
+            cyberlarge.
+    References:
+        http://www.figlet.org/
+    Example:
+        >>> bubble_text = bubbletext('TESTING BUBBLE TEXT', font='cybermedium')
+        >>> print(bubble_text)
+    """
+    try:
+        import pyfiglet
+    except ImportError:
+        from jammy.logging import get_logger
+
+        logger = get_logger()
+        logger.debug("Missing pyfiglet when use bubbletext")
+        return text
+    else:
+        bubble_text = pyfiglet.figlet_format(text, font=font)
+        return bubble_text

@@ -1,22 +1,19 @@
-import torch
-import torch.nn as nn
+from torch import nn
 
 __all__ = ["MLP"]
 
 
 class MLP(nn.Module):
-    def __init__(
-        self, input_size, n_hidden, hidden_size, output_size, is_batchnorm=False
-    ):
+    def __init__(self, in_dim, n_hidden, h_dim, out_dim, is_batchnorm=False):
         super().__init__()
         layers = []
         for _ in range(n_hidden):
-            layers.append(nn.Linear(input_size, hidden_size))
+            layers.append(nn.Linear(in_dim, h_dim))
             if is_batchnorm:
-                layers.append(nn.BatchNorm1d(hidden_size))
-            layers.append(nn.ReLU())
-            input_size = hidden_size
-        layers.append(nn.Linear(hidden_size, output_size))
+                layers.append(nn.BatchNorm1d(h_dim))
+            layers.append(nn.GELU())
+            in_dim = h_dim
+        layers.append(nn.Linear(h_dim, out_dim))
         self.layers = nn.Sequential(*layers)
 
     def forward(self, x):
