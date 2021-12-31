@@ -1,0 +1,12 @@
+defaults:
+  # use joblib for multi runs
+  - override hydra/launcher: joblib
+
+hydra:
+  # sets level of all command line loggers to 'DEBUG'
+  # verbose: True
+  run:
+    dir: /tmp/logs/debug/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: /tmp/logs/debug/multirun_${now:%Y-%m-%d_%H-%M-%S}
+    subdir: ${hydra.job.num}
