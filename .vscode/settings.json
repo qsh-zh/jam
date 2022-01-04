@@ -1,7 +1,0 @@
-{
-    "python.linting.enabled": true,
-    "python.linting.pylintEnabled": true,
-    "python.linting.flake8Enabled": false,
-    "python.linting.pylamaEnabled": false,
-    "python.pythonPath": "/home/qzhang419/anaconda3/bin/python"
-}
