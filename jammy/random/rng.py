@@ -4,10 +4,10 @@ import random as sys_random
 import numpy as np
 import numpy.random as npr
 
-from jammy.utils.defaults import defaults_manager
-from jammy.utils.registry import Registry
-from jammy.utils.env import jam_getenv
 from jammy.utils.cache import cached_result
+from jammy.utils.defaults import defaults_manager
+from jammy.utils.env import jam_getenv
+from jammy.utils.registry import Registry
 
 __all__ = [
     "JamRandomState",
@@ -21,7 +21,8 @@ __all__ = [
 
 class JamRandomState(npr.RandomState):
     def choice_list(self, list_, size=1, replace=False, p=None):
-        """Efficiently draw an element from an list, if the rng is given, use it instead of the system one."""
+        """Efficiently draw an element from an list,
+        if the rng is given, use it instead of the system one."""
         if size == 1:
             if type(list_) in (list, tuple):
                 return list_[self.choice(len(list_), p=p)]
@@ -33,16 +34,16 @@ class JamRandomState(npr.RandomState):
             return self.choice(list_, size=size, replace=replace, p=p)
 
     def shuffle_list(self, list_):
-        if type(list_) is list:
+        if isinstance(list_, list):
             sys_random.shuffle(list_, random=self.random_sample)
         else:
             self.shuffle(list_)
 
     def shuffle_multi(self, *arrs):
         length = len(arrs[0])
-        for a in arrs:
+        for cur_a in arrs:
             assert (
-                len(a) == length
+                len(cur_a) == length
             ), "non-compatible length when shuffling multiple arrays"
 
         inds = np.arange(length)
@@ -91,7 +92,7 @@ global_rng_registry.register("numpy", lambda: npr.seed)
 global_rng_registry.register("sys", lambda: sys_random.seed)
 
 
-def reset_global_seed(seed=None, verbose=False):
+def reset_global_seed(seed=None, verbose=True):
     if seed is None:
         seed = gen_seed()
     seed = int(seed)
