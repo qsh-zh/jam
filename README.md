@@ -45,7 +45,7 @@ jam-crun 1 main.py # use second nvidia gpu
 #### sample of io
 ```python
 import jammy.io as jio
-from jatorch.utils import as_numpy
+from jamtorch.utils import as_numpy
 jio.dump("ndarray.npz", np.arange(10))
 jio.dump("foo.pkl", {"foo": as_numpy(torch.arange(10).cuda())})
 ndarray = jio.load("ndarray.npz")
