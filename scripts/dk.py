@@ -111,11 +111,12 @@ def extra_mount(cfg):
 
 @jamdk_wrapper
 def extra_aug(cfg):
-    if cfg.extra is not None:
-        rtn = []
-        for key, value in cfg.extra.items():
-            rtn.append(f"--{key}={value}")
-        return rtn
+    if "extra" in cfg:
+        if cfg.extra is not None:
+            rtn = []
+            for key, value in cfg.extra.items():
+                rtn.append(f"--{key}={value}")
+            return rtn
     return None
 
 
