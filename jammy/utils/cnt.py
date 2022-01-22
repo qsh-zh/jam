@@ -1,6 +1,19 @@
 # Consider thread safe and singleton pattern
+import inspect
+from collections import defaultdict
 
-__all__ = ["BufferCnt", "CBCnt", "ExitCnt"]
+__all__ = ["BufferCnt", "CBCnt", "ExitCnt", "bufcnt"]
+
+g_caller_cnt = defaultdict(lambda: 0)
+
+
+def bufcnt(cond):
+    frames = inspect.stack()
+    hash_info = "".join(
+        [f"{cur_st.filename}{cur_st.lineno}\n" for cur_st in frames[1:]]
+    )
+    g_caller_cnt[hash_info] = g_caller_cnt[hash_info] * cond + cond
+    return g_caller_cnt[hash_info]
 
 
 class BufferCnt:

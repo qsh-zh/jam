@@ -10,7 +10,7 @@ __hash__ = git.git_hash(__file__)
 
 if jam_getenv("IMPORT_ALL", "true", "bool"):
     from jammy import io
-    from jammy.utils.cnt import BufferCnt, CBCnt
+    from jammy.utils.cnt import BufferCnt, CBCnt, bufcnt
     from jammy.utils.hyd import hyd_instantiate, hydpath
     from jammy.utils.hyd import instantiate as jam_instantiate
     from jammy.utils.hyd import link_hyd_run, update_cfg
