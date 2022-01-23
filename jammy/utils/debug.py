@@ -1,9 +1,18 @@
-import sys
-import functools
-import threading
 import contextlib
+import functools
+import sys
+import threading
+
+from jammy.utils.env import jam_getenv
+
+if jam_getenv("pdb", "ipdb") == "ipdb":
+    import ipdb as pdb
+else:
+    import pudb as pdb
 
 __all__ = ["hook_exception_ipdb", "unhook_exception_ipdb", "exception_hook"]
+
+# pylint: disable=invalid-name, redefined-builtin
 
 
 def _custom_exception_hook(type, value, tb):
@@ -12,12 +21,12 @@ def _custom_exception_hook(type, value, tb):
         # device, so we call the default hook
         sys.__excepthook__(type, value, tb)
     else:
-        import traceback, ipdb
+        import traceback
 
         # we are NOT in interactive mode, print the exception...
         traceback.print_exception(type, value, tb)
         # ...then start the debugger in post-mortem mode.
-        ipdb.post_mortem(tb)
+        pdb.post_mortem(tb)
 
 
 def hook_exception_ipdb():
@@ -51,11 +60,11 @@ def decorate_exception_hook(func):
 
 
 def _TimeoutEnterIpdbThread(locals_, cv, timeout):
+    del locals_
     with cv:
         if not cv.wait(timeout):
-            import ipdb
 
-            ipdb.set_trace()
+            pdb.set_trace()
 
 
 @contextlib.contextmanager
