@@ -3,8 +3,9 @@
     # ReservoirSample-PyTorch:
     #     root: vendors/pytorch_reservoir
 
-# system:
-#    envs:
+system:
+   envs:
+      JAM_PDB: PUDB
 #      WANDB_API_KEY: abc
 
 #conda:
