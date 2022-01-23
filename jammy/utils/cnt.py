@@ -17,9 +17,10 @@ def bufcnt(cond):
 
 
 class BufferCnt:
-    def __init__(self, thres=float("inf")):
+    def __init__(self, thres=float("inf"), reset_over_thres=False):
         self._cnt = 0
         self.thres = thres
+        self.reset_over_thres = reset_over_thres
 
     def __call__(self, expre, thres=None):
         if expre is True:
@@ -31,7 +32,8 @@ class BufferCnt:
             thres = self.thres
 
         if self._cnt > self.thres:
-            self.reset()
+            if self.reset_over_thres:
+                self.reset()
             return True
 
         return False
@@ -45,8 +47,8 @@ class BufferCnt:
 
 
 class CBCnt(BufferCnt):
-    def __init__(self, cb_fn=None, thres=float("inf")):
-        super().__init__(thres)
+    def __init__(self, cb_fn=None, thres=float("inf"), reset_over_thres=False):
+        super().__init__(thres, reset_over_thres=reset_over_thres)
         self.call_back = cb_fn
 
     def __call__(self, expre, thres=None, *args, **kwargs):
@@ -56,11 +58,13 @@ class CBCnt(BufferCnt):
 
 
 class ExitCnt(CBCnt):
-    def __init__(self, msg="Something wrong", thres=float("inf")):
+    def __init__(
+        self, msg="Something wrong", thres=float("inf"), reset_over_thres=False
+    ):
         def _exit_fn():
             print(msg)
             import sys
 
             sys.exit()
 
-        super().__init__(_exit_fn, thres)
+        super().__init__(_exit_fn, thres, reset_over_thres)
