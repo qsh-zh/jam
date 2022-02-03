@@ -11,7 +11,8 @@ class EveryN(Callback):
     def on_batch_end(
         self, trainer: "pl.Trainer", pl_module: "pl.LightningModule"
     ) -> None:
-        self.every_n_impl(trainer, pl_module)
+        if pl_module.global_step % self.every_n == 0:
+            self.every_n_impl(trainer, pl_module)
 
     @abstractmethod
     def every_n_impl(

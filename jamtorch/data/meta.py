@@ -3,6 +3,7 @@ import functools
 import numpy as np
 import torch
 from torch.utils import data
+from tqdm.auto import tqdm
 
 from jammy.random.rng import gen_rng
 from jamtorch.utils.pytree import merge_tree
@@ -41,11 +42,13 @@ def num_to_groups(num, divisor):
     return arr
 
 
-def batch_run(func, batch_size=100):
+def batch_run(func, batch_size=100, is_tqdm=False):
     @functools.wraps(func)
     def new_func(total_batch, *args, **kwargs):
         arr = num_to_groups(total_batch, batch_size)
         rtn = []
+        if is_tqdm:
+            arr = tqdm(arr)
         for cur_batch_size in arr:
             rtn.append(func(cur_batch_size, *args, **kwargs))
         return merge_tree(rtn)
