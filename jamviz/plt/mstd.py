@@ -1,7 +1,9 @@
+from collections import defaultdict
+
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
-from collections import defaultdict
+
 from .color_list import jcolors
 
 __all__ = ["MstdDict", "mstd_plot", "plotstd"]
@@ -13,13 +15,14 @@ def MstdDict():
     return defaultdict(lambda: defaultdict(list))
 
 
+# pylint: disable=too-many-locals
 def point_stat(data, coef_std=1, **kwargs):
     mean = np.mean(data)
     if "ylog" in kwargs:
         std = np.std(data)
-        up = np.log(mean + std)
+        above = np.log(mean + std)
         down = np.log(mean - std)
-        space = coef_std * np.min([up - np.log(mean), np.log(mean) - down])
+        space = coef_std * np.min([above - np.log(mean), np.log(mean) - down])
         return {
             "mean": mean,
             "up": np.exp(np.log(mean) + space),
@@ -35,7 +38,7 @@ def point_stat(data, coef_std=1, **kwargs):
 
 def plotstd(mean, cov, x=None, color=None, ax=None, label=None, markersize=3):
     if ax is None:
-        fig, ax = plt.subplots(1, 1)
+        _, ax = plt.subplots(1, 1)
     if color is None:
         color = color_list[0]
 
@@ -65,9 +68,25 @@ def mstd_plot(
     :param is_label: whether or not show label, defaults to True
     :param coef_std: width of std, defaults to 1
     :return: ax
+
+    Example::
+        exp_data = {
+            "method_A": {
+                            1: [seed1_y, seed2_y, seed3_y],
+                            2: [seed1_y, seed2_y, seed3_y],
+                        },
+            "method_B": {
+                            1: [seed1_y, seed2_y, seed3_y],
+                            2: [seed1_y, seed2_y, seed3_y]
+                        }
+        }
+        labels = {
+            "method_A": "name_A_in_paper",
+            "method_B": "name_B_in_paper",
+        }
     """
-    global color_list
-    if labels == None:
+    global color_list  # pylint: disable=global-variable-not-assigned
+    if labels is None:
         labels = {key_: key_ for key_ in exp_data.keys()}
     rtn_dict = {}
     for exp_name in labels.keys():
@@ -88,11 +107,11 @@ def mstd_plot(
     for i, exp_name in enumerate(labels):
         x = rtn_dict[exp_name]["x"]
         mean = rtn_dict[exp_name]["mean"]
-        up = rtn_dict[exp_name]["up"]
+        above = rtn_dict[exp_name]["up"]
         down = rtn_dict[exp_name]["down"]
         ax.plot(x, mean, "o", color=color_list[i], markersize=12)
         ax.plot(x, mean, "-", color=color_list[i])
-        ax.fill_between(x, down, up, color=color_list[i], alpha=0.2)
+        ax.fill_between(x, down, above, color=color_list[i], alpha=0.2)
 
     if "fix_legend" in kwargs:
         legend_label = [f"{kwargs['fix_legend']}={value}" for value in labels.values()]
