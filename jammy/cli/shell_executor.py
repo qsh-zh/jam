@@ -17,7 +17,7 @@ from jammy.utils.printing import kvformat, stformat
 logger = get_logger(
     os.path.expanduser("~/jsh.log"),
     level="DEBUG",
-    retention="10 MB",
+    rotation="10 MB",
     enqueue=True,
     filter=lambda record: "jsh" in record["extra"],
 )
@@ -30,7 +30,7 @@ ERROR_FORMAT = (
 logger = get_logger(
     os.path.expanduser("~/jsh_error.log"),
     level="DEBUG",
-    retention="10 MB",
+    rotation="10 MB",
     enqueue=True,
     filter=lambda record: "jsherror" in record["extra"],
     format=ERROR_FORMAT,
