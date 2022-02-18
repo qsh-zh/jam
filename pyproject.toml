@@ -24,8 +24,6 @@ einops = "^0.3.0"
 hydra-core = "^1.1.0"
 GitPython = "^3.1.17"
 ipdb = "^0.13.8"
-torch = "^1.9.0"
-torchvision = "^0.10.0"
 tornado = "^6.1"
 lmdb = "^1.2.1"
 python-memcached = "^1.59"
@@ -35,7 +33,6 @@ gpustat = "^0.6.0"
 tqdm = "^4.11.0"
 attrs = "^20.3.0"
 h5py = "^3.4.0"
-torchinfo = "^1.5.3"
 msgpack = "^1.0.2"
 msgpack-numpy = "^0.4.7"
 pyarrow = "^6.0.0"
@@ -43,8 +40,14 @@ pyzmq = "^22.3.0"
 line-profiler = "^3.3.1"
 ubelt = "^0.10.2"
 parse = "^1.19.0"
-pytorch-lightning = "^1.5.1"
 pudb = "^2022.1"
+pytorch-lightning = { version = "^1.5.1", optional = true }
+torch = { version = "^1.9.0", optional = true }
+torchvision = { version = "^0.10.0", optional = true }
+torchinfo = { version = "^1.5.3", optional = true }
+
+[tool.poetry.extras]
+torch = ["pytorch-lightning", "torch", "torchvision", "torchinfo"]
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.13.0"
