@@ -1,9 +1,10 @@
 import os
+import signal
 import socket
 import threading
 import time
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from subprocess import Popen
 
 import psutil
@@ -50,6 +51,18 @@ class PCState:
         return cpu_ready and mem_ready
 
 
+@dataclass
+class ProcTask:
+    cmd: str
+    proc: Popen
+    cuda: int = field(init=False)
+    pid: int = field(init=False)
+
+    def __post_init__(self):
+        self.pid = self.proc.pid
+        # self.cuda =
+
+
 def get_pc_state(interval_cpu_check: int = 2):
     mem_avail = psutil.virtual_memory().available / 1024 / 1024 / 1024
     cpu_usage = psutil.cpu_percent(interval=interval_cpu_check)
@@ -93,10 +106,17 @@ class CmdExecutor:
         self._last_msg_lock = threading.Lock()
 
     def append(self, item):
-        with Popen(item, shell=True) as process:
-            with self.active_tasks as active_tasks:
-                active_tasks[item] = process
-                return process
+        # https://jorgenmodin.net/index_html/Link---unix---Killing-a-subprocess-including-its-children-from-python---Stack-Overflow
+        # os.setsid assign a anew process group
+        process = (
+            Popen(  # pylint: disable=consider-using-with, subprocess-popen-preexec-fn
+                item, shell=True, preexec_fn=os.setsid
+            )
+        )
+        # with Popen(item, shell=True) as process:
+        with self.active_tasks as active_tasks:
+            active_tasks[item] = process
+            return process
 
     def __len__(self):
         with self.active_tasks as active_tasks:
@@ -123,7 +143,7 @@ class CmdExecutor:
             logger.bind(jsh=True).info("STOP CmdExecutor")
             with self.active_tasks as active_task:
                 for cmd, task_process in active_task.items():
-                    task_process.terminate()
+                    os.killpg(os.getpgid(task_process.pid), signal.SIGKILL)
                     logger.bind(jsh=True).info(
                         f"Work Term PID:{task_process.pid}\t {cmd}"
                     )
@@ -369,6 +389,8 @@ def client_kill_all():
     with client.activate():
         client.query("killf")
 
+
+# TODO: adding state output and fzf kill
 
 if __name__ == "__main__":
     worker = Scheduler()
