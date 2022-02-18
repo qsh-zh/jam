@@ -363,6 +363,13 @@ def echo_hello():
         client.query("job", f"echo Hello from {socket.gethostname()} && pwd")
 
 
+def client_kill_all():
+    client = instantiate_client()
+    logger.info("Identity: {}.".format(client.identity))
+    with client.activate():
+        client.query("killf")
+
+
 if __name__ == "__main__":
     worker = Scheduler()
     worker.start()
