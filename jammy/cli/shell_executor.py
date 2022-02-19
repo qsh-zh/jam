@@ -4,9 +4,12 @@ import socket
 import threading
 import time
 import uuid
-from dataclasses import dataclass, field
+from collections import defaultdict
+from dataclasses import asdict, dataclass, field
 from subprocess import Popen
+from typing import List, Optional, Union
 
+import gpustat
 import psutil
 
 from jammy.comm import get_local_addr, is_port_used
@@ -51,22 +54,38 @@ class PCState:
         return cpu_ready and mem_ready
 
 
-@dataclass
-class ProcTask:
-    cmd: str
-    proc: Popen
-    cuda: int = field(init=False)
-    pid: int = field(init=False)
-
-    def __post_init__(self):
-        self.pid = self.proc.pid
-        # self.cuda =
-
-
 def get_pc_state(interval_cpu_check: int = 2):
     mem_avail = psutil.virtual_memory().available / 1024 / 1024 / 1024
     cpu_usage = psutil.cpu_percent(interval=interval_cpu_check)
     return PCState(mem_avail, cpu_usage)
+
+
+@dataclass
+class GPUState:
+    query: gpustat.core.GPUStatCollection
+
+    def ready(self, i_th: int, gpu_usage_thres, mem_avail_thres):
+        gpu_info = self.query[i_th]
+        gpu_util_ready = gpu_usage_thres > gpu_info["utilization.gpu"]
+        gpu_mem_ready = (
+            mem_avail_thres
+            < (gpu_info["memory.total"] - gpu_info["memory.used"]) / 1024.0
+        )
+        return gpu_util_ready and gpu_mem_ready
+
+
+@dataclass
+class ProcTask:
+    cmd: str
+    proc: Popen
+    gpus: list
+    pid: int = field(init=False)
+
+    def __post_init__(self):
+        self.pid = self.proc.pid
+
+    def poll(self):
+        return self.proc.poll()
 
 
 class ThreadSafeDict(dict):
@@ -105,25 +124,29 @@ class CmdExecutor:
         self._last_msg = []
         self._last_msg_lock = threading.Lock()
 
-    def append(self, item):
+    def append(self, item, gpus: Optional[Union[None, int, list]] = None):
         # https://jorgenmodin.net/index_html/Link---unix---Killing-a-subprocess-including-its-children-from-python---Stack-Overflow
         # os.setsid assign a anew process group
+        gpu_prefix = ""
+        if gpus:
+            gpu_prefix = "CUDA_VISIBLE_DEVICES=" + ",".join(gpus) + " "
+        str_cmd = gpu_prefix + item
         process = (
             Popen(  # pylint: disable=consider-using-with, subprocess-popen-preexec-fn
-                item, shell=True, preexec_fn=os.setsid
+                str_cmd, shell=True, preexec_fn=os.setsid
             )
         )
+        cur_task = ProcTask(str_cmd, process, gpus=gpus)
         # with Popen(item, shell=True) as process:
         with self.active_tasks as active_tasks:
-            active_tasks[item] = process
-            return process
+            active_tasks[str_cmd] = cur_task
+            return cur_task
 
     def __len__(self):
-        with self.active_tasks as active_tasks:
-            return len(active_tasks)
+        return len(self.active_tasks)
 
     @property
-    def last_msg(self):
+    def last_msg(self) -> List[ProcTask]:
         with self._last_msg_lock:
             if len(self._last_msg) == 0:
                 return None
@@ -169,22 +192,40 @@ class CmdExecutor:
             self._check_cmds()
             time.sleep(2)
 
-    def _check_one_cmd(self, str_cmd, task_process):
-        poll_state = task_process.poll()
+    def _check_one_cmd(self, cmd: str, proc_task: ProcTask):
+        # TODO: we actually do not need dict for task
+        del cmd
+        poll_state = proc_task.proc.poll()
         if poll_state is None:
             return False
         with self._last_msg_lock:
-            self._last_msg.append((str_cmd, task_process, len(self.active_tasks) - 1))
+            self._last_msg.append(proc_task)
         return True
 
     def _check_cmds(self):
-        with self.active_tasks as active_task:
-            del_tasks = []
-            for cmd, task_process in active_task.items():
-                if self._check_one_cmd(cmd, task_process):
-                    del_tasks.append(cmd)
+        del_tasks = []
+        for cmd, proc_task in self.active_tasks.items():
+            if self._check_one_cmd(cmd, proc_task):
+                del_tasks.append(cmd)
+        with self.active_tasks as active_tasks:
             for key in del_tasks:
-                del self.active_tasks[key]
+                del active_tasks[key]
+
+    def __str__(self):
+        return "Active tasks\n" + stformat(self.active_tasks)
+
+
+@dataclass
+class SchedulerSetting:  # pylint: disable=too-many-instance-attributes
+    seconds_resouece_wait: float = 2.0
+    interval_cpu_check: int = 1
+    cpu_usage_thres: float = 92
+    mem_avail_thres: float = 0.9
+    cpu_proc_upper: int = 4
+
+    gpu_proc_upper: int = 2
+    gpu_usage_thres: float = 80
+    gpu_mem_avail_thres: float = 0.4
 
 
 class Scheduler:  # pylint: disable=too-many-instance-attributes
@@ -198,11 +239,10 @@ class Scheduler:  # pylint: disable=too-many-instance-attributes
         self.thread = None
         self.run = False
 
-        self.interval_cpu_check = 2
-        self.seconds_resouece_wait = 2
-        self.cpu_usage_thres = 92
-        self.mem_avail_thres = 0.9
-        self.num_process = 4
+        self.cfg = SchedulerSetting()
+
+        # gpus
+        self.gpus_num_proc = defaultdict(lambda: 0)
 
     def reset(self):
         self._cmd_executor = CmdExecutor()
@@ -235,35 +275,46 @@ class Scheduler:  # pylint: disable=too-many-instance-attributes
             self._cmd_executor.join()
         self.stop()
 
-    def append(self, cmd: str):
+    def append(self, cmd: str, gpus: Optional[Union[None, int, list]] = None):
         with self._task_buffer as buffer:
-            buffer.append(cmd)
-            logger.bind(jsh=True).debug(f"Scheduler recieves {cmd}")
+            if isinstance(gpus, int):
+                gpus = [gpus]
+            buffer.append((cmd, gpus))
+            logger.bind(jsh=True).debug(f"Scheduler recieves {cmd} on GPUs: {gpus}")
 
     def _update_fn(self):
         logger.bind(jsh=True).debug("Entering Scheduler worker")
         while self.run:
-            runenr_msg = self._cmd_executor.last_msg
-            self._process_msg(runenr_msg)
+            runner_msgs = self._cmd_executor.last_msg
+            self._process_msg(runner_msgs)
 
             if len(self._task_buffer) == 0:
                 time.sleep(3)
                 continue
 
-            if len(self._cmd_executor) == self.num_process:
-                time.sleep(1)
+            if not self.is_cpu_ready():
+                time.sleep(self.cfg.seconds_resouece_wait)
                 continue
 
-            with self._task_buffer as buffer:
-                str_cmd = buffer.pop()
-            while not self.is_resource_ready():
-                time.sleep(self.seconds_resouece_wait)
-            process = self._cmd_executor.append(str_cmd)
-            self.post_start_process(str_cmd, process)
+            gpu_ready = False
+            cur_i = 0
+            for cur_i, cur_task in enumerate(self._task_buffer):
+                str_cmd, req_gpus = cur_task
+                if self.is_gpu_ready(req_gpus):
+                    gpu_ready = True
+                    break
+            if gpu_ready:
+                with self._task_buffer as buffer:
+                    del buffer[cur_i]
+
+                proc_task = self._cmd_executor.append(str_cmd, req_gpus)
+                self.post_start_process(proc_task)
+            else:
+                time.sleep(1)
         logger.bind(jsh=True).debug("Exiting Scheduler worker")
 
-    def proc_event(self, cur_process):
-        return f"\nPID:{cur_process.pid}. Active:{len(self._cmd_executor):>5d}\
+    def event_info(self, proc_task: ProcTask):
+        return f"\nPID:{proc_task.pid}. Active:{len(self._cmd_executor):>5d}\
              Finished/TODO/Error: {self.num_finished_task:>5d}/{len(self._task_buffer):>5d}/{len(self.error_cmds):>5d}"  # pylint: disable=line-too-long
 
     def log_state(self):
@@ -271,39 +322,76 @@ class Scheduler:  # pylint: disable=too-many-instance-attributes
             f"Active:{len(self._cmd_executor)}. Finished/TODO/Error: {self.num_finished_task:>5d}/{len(self._task_buffer):>5d}/{len(self.error_cmds):>5d}"  # pylint: disable=line-too-long
         )
 
-    def _process_msg(self, msgs):
+    def _process_msg(self, msgs: List[ProcTask]) -> None:
         if msgs:
-            for msg in msgs:
-                str_cmd, process, _ = msg
-                poll_state = process.poll()
+            for proc_task in msgs:
+                poll_state = proc_task.poll()
                 if poll_state == 0:
-                    self.post_work_cmd(str_cmd, process)
+                    self.post_work_cmd(proc_task)
                 else:
-                    self.post_broken_cmd(str_cmd, process)
+                    self.post_broken_cmd(proc_task)
 
-    def is_resource_ready(self):
-        pc_state = get_pc_state(self.interval_cpu_check)
-        state = pc_state.ready(self.cpu_usage_thres, self.mem_avail_thres)
-        return state
+    def is_cpu_ready(self):
+        pc_state = get_pc_state(self.cfg.interval_cpu_check)
+        state = pc_state.ready(self.cfg.cpu_usage_thres, self.cfg.mem_avail_thres)
+        is_lower_upper_proc = len(self._cmd_executor) < self.cfg.cpu_proc_upper
+        return state and is_lower_upper_proc
 
-    def post_start_process(self, str_cmd, process):
+    def is_gpu_ready(self, gpus: List[int] = None):
+        if gpus:
+            gpu_state = GPUState(gpustat.new_query())
+            for cur_id in gpus:
+                if self.gpus_num_proc[cur_id] >= self.cfg.gpu_proc_upper:
+                    return False
+
+                if not gpu_state.ready(
+                    cur_id, self.cfg.gpu_usage_thres, self.cfg.gpu_mem_avail_thres
+                ):
+                    return False
+
+        return True
+
+    def post_start_process(self, proc_task: ProcTask):
         self.num_total_task += 1
-        logger.bind(jsh=True).info(f"\nFire {str_cmd}! {self.proc_event(process)}")
-
-    def post_work_cmd(self, str_cmd, process):
-        self.num_finished_task += 1
-        logger.bind(jsh=True).info(f"\nFinish {str_cmd}! {self.proc_event(process)}")
-
-    def post_broken_cmd(self, str_cmd, process):
-        self.num_finished_task += 1
-        poll_state = process.poll()
-        logger.bind(jsh=True).critical(
-            f"\nError:\t{poll_state:03d}!\n{str_cmd}{self.proc_event(process)}"
+        if proc_task.gpus:
+            for item in proc_task.gpus:
+                self.gpus_num_proc[item] += 1
+        logger.bind(jsh=True).info(
+            f"\nFire {proc_task.cmd}! {self.event_info(proc_task)}"
         )
-        logger.bind(jsherror=True).debug(f"PID:{process.pid:>06d} {str_cmd}")
+
+    def post_work_cmd(self, proc_task: ProcTask):
+        self.num_finished_task += 1
+        if proc_task.gpus:
+            for item in proc_task.gpus:
+                self.gpus_num_proc[item] -= 1
+        logger.bind(jsh=True).info(
+            f"\nFinish {proc_task.cmd}! {self.event_info(proc_task)}"
+        )
+
+    def post_broken_cmd(self, proc_task: ProcTask):
+        self.num_finished_task += 1
+        if proc_task.gpus:
+            for item in proc_task.gpus:
+                self.gpus_num_proc[item] -= 1
+
+        poll_state = proc_task.poll()
+        logger.bind(jsh=True).critical(
+            f"\nError:\t{poll_state:03d}!\n{proc_task.cmd}{self.event_info(proc_task)}"
+        )
+        logger.bind(jsherror=True).debug(f"PID:{proc_task.pid:>06d} {proc_task.cmd}")
 
     def __exit__(self, *args, **kwargs):
         self.stop()
+
+    def __str__(self):
+        return (
+            "jsh setting\n"
+            + stformat(asdict(self.cfg))
+            + str(self._cmd_executor)
+            + "GPUs\n"
+            + stformat(dict(self.gpus_num_proc))
+        )
 
 
 worker = None
@@ -315,10 +403,10 @@ def set_scheduler(pipe, identifier, inp=None):
     logger.info(f"REQ SET from {idx}\n {kvformat(inp)}")
     for key, value in inp.items():
         try:
-            setattr(worker, key, value)
+            setattr(worker.cfg, key, value)
         except Exception as error:  # pylint: disable=broad-except
             print(error)
-    logger.info("SET Done")
+    logger.debug("SET Done")
     pipe.send(identifier, None)
 
 
@@ -329,8 +417,11 @@ def add_job(pipe, identifier, inp=None):
         inp = [inp]
     logger.info(f"REQ job from {idx}\n {stformat(inp)}")
     for job in inp:
-        worker.append(job)
-    logger.info("SET Done")
+        if isinstance(job, str):
+            worker.append(job)
+        else:
+            worker.append(job[0], job[1])
+    logger.debug("Add work done")
     pipe.send(identifier, None)
 
 
@@ -345,6 +436,14 @@ def kill_all(pipe, identifier, inp=None):
     pipe.send(identifier, None)
 
 
+def response_state(pipe, identifier, inp=None):
+    del inp
+    global worker
+    idx = identifier.decode("ascii")
+    logger.info(f"REQ state from {idx}\n")
+    pipe.send(identifier, str(worker))
+
+
 def start_sever():
     global worker
     worker = Scheduler()
@@ -354,6 +453,7 @@ def start_sever():
         server.dispatcher.register("set", set_scheduler)
         server.dispatcher.register("job", add_job)
         server.dispatcher.register("killf", kill_all)
+        server.dispatcher.register("state", response_state)
         p_router = jam_getenv("ShExecutor", default=1089, type=int)
         assert not is_port_used(p_router)
         assert not is_port_used(p_router + 1)
@@ -378,9 +478,15 @@ def instantiate_client(flag="_"):
 
 def echo_hello():
     client = instantiate_client()
-    logger.info("Identity: {}.".format(client.identity))
     with client.activate():
         client.query("job", f"echo Hello from {socket.gethostname()} && pwd")
+
+
+def echo_state():
+    client = instantiate_client()
+    with client.activate():
+        state_info = client.query("state")
+        print(state_info)
 
 
 def client_kill_all():
