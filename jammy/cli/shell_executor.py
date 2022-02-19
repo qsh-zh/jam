@@ -129,7 +129,7 @@ class CmdExecutor:
         # os.setsid assign a anew process group
         gpu_prefix = ""
         if gpus:
-            gpu_prefix = "CUDA_VISIBLE_DEVICES=" + ",".join(gpus) + " "
+            gpu_prefix = "CUDA_VISIBLE_DEVICES=" + ",".join(map(str, gpus)) + " "
         str_cmd = gpu_prefix + item
         process = (
             Popen(  # pylint: disable=consider-using-with, subprocess-popen-preexec-fn
@@ -212,7 +212,9 @@ class CmdExecutor:
                 del active_tasks[key]
 
     def __str__(self):
-        return "Active tasks\n" + stformat(self.active_tasks)
+        return "Active tasks\n" + stformat(
+            {proc.pid: proc.cmd for proc in self.active_tasks.values()}
+        )
 
 
 @dataclass
@@ -313,9 +315,11 @@ class Scheduler:  # pylint: disable=too-many-instance-attributes
                 time.sleep(1)
         logger.bind(jsh=True).debug("Exiting Scheduler worker")
 
-    def event_info(self, proc_task: ProcTask):
-        return f"\nPID:{proc_task.pid}. Active:{len(self._cmd_executor):>5d}\
-             Finished/TODO/Error: {self.num_finished_task:>5d}/{len(self._task_buffer):>5d}/{len(self.error_cmds):>5d}"  # pylint: disable=line-too-long
+    def event_info(self, proc_task: Union[ProcTask, None] = None):
+        if proc_task:
+            return f"\nPID:{proc_task.pid}. Active:{len(self._cmd_executor):>5d}\
+                Finished/TODO/Error: {self.num_finished_task:>5d}/{len(self._task_buffer):>5d}/{len(self.error_cmds):>5d}"  # pylint: disable=line-too-long
+        return f"Finished/TODO/Error: {self.num_finished_task:>5d}/{len(self._task_buffer):>5d}/{len(self.error_cmds):>5d}"  # pylint: disable=line-too-long
 
     def log_state(self):
         logger.bind(jsh=True).debug(
@@ -388,6 +392,8 @@ class Scheduler:  # pylint: disable=too-many-instance-attributes
         return (
             "jsh setting\n"
             + stformat(asdict(self.cfg))
+            + self.event_info()
+            + "\n\n"
             + str(self._cmd_executor)
             + "GPUs\n"
             + stformat(dict(self.gpus_num_proc))
@@ -413,7 +419,7 @@ def set_scheduler(pipe, identifier, inp=None):
 def add_job(pipe, identifier, inp=None):
     global worker
     idx = identifier.decode("ascii")
-    if isinstance(inp, str):
+    if isinstance(inp, (str, tuple)):
         inp = [inp]
     logger.info(f"REQ job from {idx}\n {stformat(inp)}")
     for job in inp:
