@@ -234,9 +234,10 @@ class Scheduler:  # pylint: disable=too-many-instance-attributes
     def __init__(self):
         self._cmd_executor = CmdExecutor()
         self._task_buffer = ThreadSafeList()
-        self.error_cmds = []
+
         self.num_total_task = 0
         self.num_finished_task = 0
+        self.num_error_task = 0
 
         self.thread = None
         self.run = False
@@ -249,9 +250,10 @@ class Scheduler:  # pylint: disable=too-many-instance-attributes
     def reset(self):
         self._cmd_executor = CmdExecutor()
         self._task_buffer = ThreadSafeList()
-        self.error_cmds = []
+
         self.num_total_task = 0
         self.num_finished_task = 0
+        self.num_error_task = 0
 
         self.thread = None
         self.run = False
@@ -302,6 +304,7 @@ class Scheduler:  # pylint: disable=too-many-instance-attributes
             cur_i = 0
             for cur_i, cur_task in enumerate(self._task_buffer):
                 str_cmd, req_gpus = cur_task
+                req_gpus = self.check_gpu_input(req_gpus)  # check if need auto tune gpu
                 if self.is_gpu_ready(req_gpus):
                     gpu_ready = True
                     break
@@ -318,12 +321,12 @@ class Scheduler:  # pylint: disable=too-many-instance-attributes
     def event_info(self, proc_task: Union[ProcTask, None] = None):
         if proc_task:
             return f"\nPID:{proc_task.pid}. Active:{len(self._cmd_executor):>5d}\
-                Finished/TODO/Error: {self.num_finished_task:>5d}/{len(self._task_buffer):>5d}/{len(self.error_cmds):>5d}"  # pylint: disable=line-too-long
-        return f"Finished/TODO/Error: {self.num_finished_task:>5d}/{len(self._task_buffer):>5d}/{len(self.error_cmds):>5d}"  # pylint: disable=line-too-long
+                Finished/TODO/Error: {self.num_finished_task:>5d}/{len(self._task_buffer):>5d}/{self.num_error_task:>5d}"  # pylint: disable=line-too-long
+        return f"Finished/TODO/Error: {self.num_finished_task:>5d}/{len(self._task_buffer):>5d}/{self.num_error_task:>5d}"  # pylint: disable=line-too-long
 
     def log_state(self):
         logger.bind(jsh=True).debug(
-            f"Active:{len(self._cmd_executor)}. Finished/TODO/Error: {self.num_finished_task:>5d}/{len(self._task_buffer):>5d}/{len(self.error_cmds):>5d}"  # pylint: disable=line-too-long
+            f"Active:{len(self._cmd_executor)}. Finished/TODO/Error: {self.num_finished_task:>5d}/{len(self._task_buffer):>5d}/{self.num_error_task:>5d}"  # pylint: disable=line-too-long
         )
 
     def _process_msg(self, msgs: List[ProcTask]) -> None:
@@ -354,6 +357,31 @@ class Scheduler:  # pylint: disable=too-many-instance-attributes
                     return False
 
         return True
+
+    def check_gpu_input(self, gpus: List[int] = None):
+        if gpus:
+            if len(gpus) == 1 and gpus[-1] < 0:
+                rtn_gpu = self.select_gpu(abs(gpus[-1]))
+                if rtn_gpu:
+                    return rtn_gpu
+        return gpus
+
+    def select_gpu(self, num_gpu: int = 2):
+        rtn = []
+        gpu_state = GPUState(gpustat.new_query())
+        for cur_id in range(len(gpu_state.query)):
+            if self.gpus_num_proc[cur_id] >= self.cfg.gpu_proc_upper:
+                continue
+
+            if not gpu_state.ready(
+                cur_id, self.cfg.gpu_usage_thres, self.cfg.gpu_mem_avail_thres
+            ):
+                continue
+            rtn.append(cur_id)
+        if len(rtn) < num_gpu:
+            return None
+        logger.bind(jsh=True).debug(f"Select GPUs : {rtn[:num_gpu]}")
+        return rtn[:num_gpu]
 
     def post_start_process(self, proc_task: ProcTask):
         self.num_total_task += 1

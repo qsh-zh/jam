@@ -3,6 +3,7 @@ import time
 import uuid
 
 import gpustat
+import timeout_decorator
 
 from jammy.comm import get_local_addr, is_port_used
 from jammy.comm.cs import ClientPipe, ServerPipe
@@ -60,6 +61,9 @@ def instantiate_client(flag="_"):
     return client
 
 
+@timeout_decorator.timeout(
+    5, exception_message="Make sure jgpus(gpu-server) has started"
+)
 def start_client():
     client = instantiate_client()
     logger.info("Identity: {}.".format(client.identity))
@@ -70,6 +74,7 @@ def start_client():
         logger.info(f"req get {query_gpu_ids}")
 
 
+@timeout_decorator.timeout(7, exception_message="Make sure jgpu-server has started")
 def get_gpu_by_utils(num_gpus: int = 1, sleep_sec: int = 3):
     client = instantiate_client(os.getpid())
     with client.activate():

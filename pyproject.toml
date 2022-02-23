@@ -55,6 +55,7 @@ line-profiler = { version = "^3.3.1", optional = true }
 ubelt = { version = "^0.10.2", optional = true }
 parse = { version = "^1.19.0", optional = true }
 pudb = { version = "^2022.1", optional = true }
+timeout-decorator = "^0.5.0"
 
 [tool.poetry.extras]
 torch = ["wandb", "pytorch-lightning", "torch", "torchvision", "torchinfo"]
