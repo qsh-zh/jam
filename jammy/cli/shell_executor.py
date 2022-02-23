@@ -420,6 +420,8 @@ class Scheduler:  # pylint: disable=too-many-instance-attributes
         return (
             "jsh setting\n"
             + stformat(asdict(self.cfg))
+            + "\n\n TODO\n"
+            + stformat(self._task_buffer)
             + self.event_info()
             + "\n\n"
             + str(self._cmd_executor)
