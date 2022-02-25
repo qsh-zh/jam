@@ -2,8 +2,8 @@ import gpustat
 import numpy as np
 
 
-def select_gpu(mem_prior=1.0):
-    mem_prior = np.clip(mem_prior, 0.0,1.0)
+def gpu_by_weight(mem_prior=1.0):
+    mem_prior = np.clip(mem_prior, 0.0, 1.0)
     query = gpustat.new_query()
     if len(query) == 0:
         raise RuntimeError("gpu not available")
@@ -12,10 +12,10 @@ def select_gpu(mem_prior=1.0):
 
     mem_list, utils_list = get_mem_util()
     mem, utils = np.array(mem_list), np.array(utils_list)
-    weight = mem*mem_prior + utils * (1-mem_prior)
-    least_utils_id = np.argmin(weight)
+    weight = mem * mem_prior + utils * (1 - mem_prior)
 
-    return query[least_utils_id].entry["index"]
+    ids = np.argsort(weight)
+    return [query[id_item].entry["index"] for id_item in ids]
 
 
 def gpu_by_util():
@@ -27,6 +27,6 @@ def gpu_by_util():
 
 def get_mem_util():
     query = gpustat.new_query()
-    used_space_list = [1.0 * item.memory_used/item.memory_total for item in query]
+    used_space_list = [1.0 * item.memory_used / item.memory_total for item in query]
     utils_list = [item.utilization for item in query]
     return used_space_list, utils_list

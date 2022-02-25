@@ -18,9 +18,10 @@ logger = get_logger()
 def req_util(pipe, identifier, inp=None):
     num_gpus = inp.get("num_gpus", 1)
     sleep_sec = inp.get("sleep_sec", 3)
+    mem_prior = inp.get("mem_prior", 0.5)
     idx = identifier.decode("ascii")
     logger.info(f"REQ from {idx}\n {kvformat(inp)}")
-    gpu_list = gpu.gpu_by_util()
+    gpu_list = gpu.gpu_by_weight(mem_prior)
     msg = None
     if len(gpu_list) < num_gpus:
         msg = gpu_list
@@ -75,12 +76,13 @@ def start_client():
 
 
 @timeout_decorator.timeout(7, exception_message="Make sure jgpu-server has started")
-def get_gpu_by_utils(num_gpus: int = 1, sleep_sec: int = 3):
+def get_gpu_by_utils(num_gpus: int = 1, sleep_sec: int = 3, mem_prior: float = 0.5):
     client = instantiate_client(os.getpid())
     with client.activate():
         inp = {
             "num_gpus": num_gpus,
             "sleep_sec": sleep_sec,
+            "mem_prior": mem_prior,
         }
         query_gpu_ids = client.query("req_util", inp)
     return query_gpu_ids
