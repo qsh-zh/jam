@@ -78,9 +78,9 @@ class Wandb:
 
             proj_dir = _main.__file__
         project_sha, project_diff = git.log_repo(proj_dir)
-        with open("jam_change.patch", "w") as f:
+        with open("jam_change.patch", "w", encoding="utf8") as f:
             f.write(jam_diff)
-        with open("proj_change.patch", "w") as f:
+        with open("proj_change.patch", "w", encoding="utf8") as f:
             f.write(project_diff)
 
         return jam_sha, proj_dir, project_sha
@@ -136,7 +136,7 @@ class Wandb:
         else:
             Wandb.cfg = Wandb.prep_args(cfg)["config"]
         if dump_meta:
-            with open("meta.yaml", "w") as fp:
+            with open("meta.yaml", "w", encoding="utf8") as fp:
                 OmegaConf.save(config=OmegaConf.create(Wandb.cfg), f=fp.name)
         return Wandb.run
 
