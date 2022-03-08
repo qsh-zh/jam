@@ -27,6 +27,11 @@ def _args_single_param(item, _format="args"):
 
 
 def param_sweep(prefix=None, **kwargs):
+    """generate cmds
+
+    :param prefix: defaults to None
+    : conditional "_format" -> args, hydra
+    """
     _format = "args"
     if "_format" in kwargs:
         _format = kwargs.get(_format)
