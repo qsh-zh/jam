@@ -2,9 +2,13 @@ import os
 import smtplib
 from email.mime.text import MIMEText
 from email.utils import formataddr
+
 from jammy.logging import get_logger
+
 from .env import jam_getenv
 from .meta import run_once
+
+# pylint: disable=bare-except, no-member, no-self-use, broad-except,
 
 logger = get_logger()
 
@@ -16,10 +20,11 @@ class _Notifier:
         self.enabled = True
         keys = ["sender", "receiver", "smtp_url", "smtp_port", "smtp_key"]
         for cur_key in keys:
-            term = jam_getenv(f"ntf_{cur_key}", default=None, prefix="_")
+            term = jam_getenv(f"ntf_{cur_key}", default=None)
+            logger.info(f"get {term}")
             if term is None:
                 self.enabled = False
-                logger.debug(f"miss {cur_key} in environment")
+                logger.info(f"miss {cur_key} in environment")
                 break
             setattr(self, cur_key, term)
         try:
@@ -45,7 +50,7 @@ class _Notifier:
             msg = MIMEText(msg, "plain", "utf-8")
             msg["From"] = formataddr([f"NotifierEXP {self.address}", self.sender])
             msg["To"] = formataddr([f"{self.user}", self.receiver])
-            if subject == None:
+            if subject is None:
                 subject = "Update on EXP"
             msg["Subject"] = subject
 
@@ -61,8 +66,9 @@ class _Notifier:
             logger.warning(str(e))
             return False
 
-        def __exit__(self):
-            self.server.quit()
+    def __exit__(self, *args, **kwargs):
+        del args, kwargs
+        self.server.quit()
 
 
 jam_notifier = _Notifier()
