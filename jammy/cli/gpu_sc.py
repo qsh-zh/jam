@@ -1,7 +1,7 @@
+import argparse
 import os
 import time
 import uuid
-import argparse
 
 import gpustat
 import timeout_decorator
@@ -42,7 +42,9 @@ def len_available_gpu(pipe, identifier, inp=None):
 
 
 def start_sever():
-    parser = argparse.ArgumentParser(prog='jgpus: start a gpu resource allocation server')
+    parser = argparse.ArgumentParser(
+        prog="jgpus: start a gpu resource allocation server"
+    )
     parser.add_argument("-p", "--port", type=int, default=-1, help="set default port")
     args = parser.parse_args()
 
@@ -63,6 +65,7 @@ def start_sever():
         while True:
             time.sleep(1)
 
+
 def instantiate_client(flag="_", port=-1):
     p_dealer = port
     if port < 0:
@@ -79,7 +82,9 @@ def instantiate_client(flag="_", port=-1):
     5, exception_message="Make sure jgpus(gpu-server) has started"
 )
 def start_client():
-    parser = argparse.ArgumentParser(prog='jgpuc: start a gpu resource allocation client')
+    parser = argparse.ArgumentParser(
+        prog="jgpuc: start a gpu resource allocation client"
+    )
     parser.add_argument("-p", "--port", type=int, default=-1, help="set default port")
     args = parser.parse_args()
 
@@ -93,7 +98,9 @@ def start_client():
 
 
 @timeout_decorator.timeout(7, exception_message="Make sure jgpu-server has started")
-def get_gpu_by_utils(num_gpus: int = 1, sleep_sec: int = 3, mem_prior: float = 0.5, port: int=-1):
+def get_gpu_by_utils(
+    num_gpus: int = 1, sleep_sec: int = 3, mem_prior: float = 0.5, port: int = -1
+):
     client = instantiate_client(os.getpid(), port=port)
     with client.activate():
         inp = {

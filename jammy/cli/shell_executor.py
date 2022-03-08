@@ -1,10 +1,10 @@
+import argparse
 import os
 import signal
 import socket
 import threading
 import time
 import uuid
-import argparse
 from collections import defaultdict
 from dataclasses import asdict, dataclass, field
 from subprocess import Popen
@@ -482,7 +482,7 @@ def response_state(pipe, identifier, inp=None):
 
 
 def start_sever():
-    parser = argparse.ArgumentParser(prog='jshs: start a shell executor server')
+    parser = argparse.ArgumentParser(prog="jshs: start a shell executor server")
     parser.add_argument("-p", "--port", type=int, default=-1, help="set default port")
     args = parser.parse_args()
 
@@ -523,14 +523,16 @@ def instantiate_client(flag="_", p_dealer=-1):
     )
     return client
 
+
 def _shell_instantiate_client(port=-1):
-    parser = argparse.ArgumentParser(prog='jsh client')
+    parser = argparse.ArgumentParser(prog="jsh client")
     parser.add_argument("-p", "--port", type=int, default=-1, help="set default port")
     args = parser.parse_args()
     if args.port > 0:
         port = args.port
         logger.warning(f"Use passed Port {args.port}")
     return instantiate_client(p_dealer=port)
+
 
 def echo_hello():
     client = _shell_instantiate_client()
