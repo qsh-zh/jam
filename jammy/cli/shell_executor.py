@@ -4,6 +4,7 @@ import socket
 import threading
 import time
 import uuid
+import argparse
 from collections import defaultdict
 from dataclasses import asdict, dataclass, field
 from subprocess import Popen
@@ -481,6 +482,10 @@ def response_state(pipe, identifier, inp=None):
 
 
 def start_sever():
+    parser = argparse.ArgumentParser(prog='jshs: start a shell executor server')
+    parser.add_argument("-p", "--port", type=int, default=-1, help="set default port")
+    args = parser.parse_args()
+
     global worker
     worker = Scheduler()
     worker.start()
@@ -490,7 +495,12 @@ def start_sever():
         server.dispatcher.register("job", add_job)
         server.dispatcher.register("killf", kill_all)
         server.dispatcher.register("state", response_state)
-        p_router = jam_getenv("ShExecutor", default=1089, type=int)
+        if args.port < -1:
+            p_router = jam_getenv("ShExecutor", default=1089, type=int)
+            logger.warning(f"Use default port {p_router}")
+        else:
+            p_router = args.port
+            logger.warning(f"Use passed Port {p_router}")
         assert not is_port_used(p_router)
         assert not is_port_used(p_router + 1)
         with server.activate(tcp_port=[str(p_router), str(p_router + 1)]):
@@ -502,8 +512,10 @@ def start_sever():
         worker.stop()
 
 
-def instantiate_client(flag="_"):
-    p_dealer = jam_getenv("ShExecutor", default=1089, type=int)
+def instantiate_client(flag="_", p_dealer=-1):
+    if p_dealer < 0:
+        p_dealer = jam_getenv("ShExecutor", default=1089, type=int)
+        logger.warning(f"Use default port {p_dealer}")
     tcp_dealer = f"tcp://{get_local_addr()}:{p_dealer}"
     tcp_push = f"tcp://{get_local_addr()}:{p_dealer+1}"
     client = ClientPipe(
@@ -511,22 +523,30 @@ def instantiate_client(flag="_"):
     )
     return client
 
+def _shell_instantiate_client(port=-1):
+    parser = argparse.ArgumentParser(prog='jsh client')
+    parser.add_argument("-p", "--port", type=int, default=-1, help="set default port")
+    args = parser.parse_args()
+    if args.port > 0:
+        port = args.port
+        logger.warning(f"Use passed Port {args.port}")
+    return instantiate_client(p_dealer=port)
 
 def echo_hello():
-    client = instantiate_client()
+    client = _shell_instantiate_client()
     with client.activate():
         client.query("job", f"echo Hello from {socket.gethostname()} && pwd")
 
 
 def echo_state():
-    client = instantiate_client()
+    client = _shell_instantiate_client()
     with client.activate():
         state_info = client.query("state")
         print(state_info)
 
 
 def client_kill_all():
-    client = instantiate_client()
+    client = _shell_instantiate_client()
     logger.info("Identity: {}.".format(client.identity))
     with client.activate():
         client.query("killf")
