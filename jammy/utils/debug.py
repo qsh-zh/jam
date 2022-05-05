@@ -5,7 +5,7 @@ import threading
 
 from jammy.utils.env import jam_getenv
 
-if jam_getenv("pdb", "ipdb") == "ipdb":
+if jam_getenv("pdb", "ipdb").lower() == "ipdb":
     import ipdb as pdb
 else:
     import pudb as pdb
