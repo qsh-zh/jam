@@ -79,9 +79,12 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-jgpus="jammy.cli.gpu_sc:start_sever"
-jgpuc="jammy.cli.gpu_sc:start_client"
-jshs="jammy.cli.shell_executor:start_sever"
-jshc="jammy.cli.shell_executor:echo_hello"
-jshinfo="jammy.cli.shell_executor:echo_state"
-jshka="jammy.cli.shell_executor:client_kill_all"
+jgpus="jammy.cli_scripts.gpu_sc:start_sever"
+jgpuc="jammy.cli_scripts.gpu_sc:start_client"
+jshs="jammy.cli_scripts.shell_executor:start_sever"
+jshc="jammy.cli_scripts.shell_executor:echo_hello"
+jshinfo="jammy.cli_scripts.shell_executor:echo_state"
+jshka="jammy.cli_scripts.shell_executor:client_kill_all"
+jinspect-file="jammy.cli_scripts.inspect_file:simple"
+jsys-info="jammy.cli_scripts.sys_info:main"
+jdk="jammy.cli_scripts.dk:my_app"

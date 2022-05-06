@@ -2,7 +2,7 @@ import os
 
 import hydra
 
-from jammy.cli.gpu_sc import get_gpu_by_utils
+from jammy.cli_scripts.gpu_sc import get_gpu_by_utils
 
 
 @hydra.main(config_path=".", config_name="config")
