@@ -63,7 +63,7 @@ sample of io
 
 .. code:: shell
 
-    $ jam-inspect-file foo.pkl
+    $ jinspect-file foo.pkl
     > python3
     [ins] print(f1)
     # content of foo.pkl

@@ -53,7 +53,7 @@ jio.load("foo.pkl")
 model_dict = jio.load("checkpoint.pth")
 ```
 ```shell
-$ jam-inspect-file foo.pkl
+$ jinspect-file foo.pkl
 > python3
 [ins] print(f1)
 # content of foo.pkl
