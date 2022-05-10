@@ -34,8 +34,8 @@ def param_sweep(prefix=None, **kwargs):
     """
     _format = "args"
     if "_format" in kwargs:
-        _format = kwargs.get(_format)
-        del kwargs[_format]
+        _format = kwargs.get("_format")
+        del kwargs["_format"]
     assert _format in ["args", "hydra"]
     args_list = list(map(partial(_args_single_param, _format=_format), kwargs.items()))
     if prefix is not None:
