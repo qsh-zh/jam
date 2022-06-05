@@ -2,6 +2,22 @@ import gpustat
 import numpy as np
 
 
+def is_gpu_free(ids=0, mem_thres=0.2, util_thres=0.3):
+    if isinstance(ids, (list, tuple)):
+        return all(is_gpu_free(item, mem_thres, util_thres) for item in ids)
+    if isinstance(ids, int):
+        query = gpustat.new_query()
+        fixed_gpu = query[ids]
+        used_mem = 1.0 * fixed_gpu.memory_used / fixed_gpu.memory_total
+        if used_mem < mem_thres and fixed_gpu.utilization < util_thres:
+            return True
+        return False
+    if ids == "all":
+        query = gpustat.new_query()
+        return is_gpu_free(list(range(len(query))), mem_thres, util_thres)
+    raise RuntimeError(f"{ids} not supprted")
+
+
 def gpu_by_weight(mem_prior=1.0):
     mem_prior = np.clip(mem_prior, 0.0, 1.0)
     query = gpustat.new_query()
