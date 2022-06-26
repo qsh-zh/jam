@@ -97,16 +97,25 @@ def start_client():
         logger.info(f"req get {query_gpu_ids}")
 
 
-@timeout_decorator.timeout(7, exception_message="Make sure jgpu-server has started")
 def get_gpu_by_utils(
-    num_gpus: int = 1, sleep_sec: int = 3, mem_prior: float = 0.5, port: int = -1
+    num_gpus: int = 1,
+    sleep_sec: int = 3,
+    timeout_sec: int = 7,
+    mem_prior: float = 0.5,
+    port: int = -1,
 ):
-    client = instantiate_client(os.getpid(), port=port)
-    with client.activate():
-        inp = {
-            "num_gpus": num_gpus,
-            "sleep_sec": sleep_sec,
-            "mem_prior": mem_prior,
-        }
-        query_gpu_ids = client.query("req_util", inp)
-    return query_gpu_ids
+    @timeout_decorator.timeout(
+        timeout_sec, exception_message="Make sure jgpu-server has started"
+    )
+    def work_fn():
+        client = instantiate_client(os.getpid(), port=port)
+        with client.activate():
+            inp = {
+                "num_gpus": num_gpus,
+                "sleep_sec": sleep_sec,
+                "mem_prior": mem_prior,
+            }
+            query_gpu_ids = client.query("req_util", inp)
+        return query_gpu_ids
+
+    return work_fn()
