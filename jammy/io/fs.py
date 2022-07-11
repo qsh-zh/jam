@@ -14,6 +14,7 @@ import scipy.io as sio
 import six
 import yaml
 
+from jammy.image import imread, imwrite
 from jammy.logging import get_logger
 from jammy.utils.enum import JamEnum
 from jammy.utils.filelock import FileLock
@@ -42,6 +43,7 @@ __all__ = [
     "load_pth",
     "load_yaml",
     "load_json",
+    "load_img",
     "dump",
     "dump_pkl",
     "dump_pklgz",
@@ -50,6 +52,7 @@ __all__ = [
     "dump_mat",
     "dump_pth",
     "dump_json",
+    "dump_img",
     "safe_dump",
     "compress",
     "compress_zip",
@@ -143,6 +146,10 @@ def load_json(file, **kwargs):
         return json.load(fp)
 
 
+def load_img(file, **kwargs):
+    return imread(file)
+
+
 def load_yaml(file, **kwargs):
     with sys_open(file, "r") as yamlfile:
         return yaml.load(yamlfile)
@@ -166,6 +173,10 @@ def dump_yaml(file, obj, **kwargs):
 def dump_json(file, obj, **kwargs):
     with sys_open(file, "w") as f:
         return json.dump(obj, f)
+
+
+def dump_img(file, obj, **kwargs):
+    imwrite(file, obj)
 
 
 def dump_npy(file, obj, **kwargs):
@@ -237,6 +248,9 @@ io_function_registry.register("load", ".cfg", load_pkl)
 io_function_registry.register("load", ".yaml", load_yaml)
 io_function_registry.register("load", ".yml", load_yaml)
 io_function_registry.register("load", ".json", load_json)
+io_function_registry.register("load", ".jpg", load_img)
+io_function_registry.register("load", ".png", load_img)
+io_function_registry.register("load", ".jepg", load_img)
 
 io_function_registry.register("dump", ".pkl", dump_pkl)
 io_function_registry.register("dump", ".pklgz", dump_pklgz)
@@ -248,6 +262,9 @@ io_function_registry.register("dump", ".cfg", dump_pkl)
 io_function_registry.register("dump", ".yaml", dump_yaml)
 io_function_registry.register("dump", ".yml", dump_yaml)
 io_function_registry.register("dump", ".json", dump_json)
+io_function_registry.register("dump", ".jpg", dump_img)
+io_function_registry.register("dump", ".png", dump_img)
+io_function_registry.register("dump", ".jepg", dump_img)
 
 
 io_function_registry.register("extract", ".zip", extract_zip)

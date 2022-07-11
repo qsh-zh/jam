@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "jammy"
 version = "0.0.1" # This should be overriden by the CI at publish time
-description = "Personal ToolBox"
+description = "A Versatile ToolBox"
 authors = ["Qin <qsh.zh27@gmail.com>"]
 license = "MIT"
 packages = [
@@ -34,9 +34,9 @@ pyzmq = { version = "^22.3.0" }
 wandb = { version = "^0.10.31", optional = true }
 
 # torch
-pytorch-lightning = { version = "^1.5.1", optional = true }
-torch = { version = "^1.9.0", optional = true }
-torchvision = { version = "^0.10.0", optional = true }
+pytorch-lightning = { version = "^1.5.10", optional = true }
+torch = { version = "^1.10.0", optional = true }
+torchvision = { version = "^0.11.0", optional = true }
 torchinfo = { version = "^1.5.3", optional = true }
 
 # webs

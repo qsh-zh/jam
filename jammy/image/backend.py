@@ -8,9 +8,11 @@
 # This file is part of Jacinle.
 # Distributed under terms of the MIT license.
 
-import time
 import functools
+import time
+
 import numpy as np
+
 from jammy.logging import get_logger
 
 logger = get_logger()
@@ -87,16 +89,17 @@ def pil_nd2img(image):
 @opencv_or_pil
 def imread(path):
     if cv2:
-        return cv2.imread(path)
+        # cv2 default BGR
+        return cv2.imread(path)[..., ::-1]
     else:
-        image = Image.open(path).convert('RGB')
+        image = Image.open(path).convert("RGB")
         return pil_img2nd(image)
 
 
 @opencv_or_pil
 def imwrite(path, image):
     if cv2:
-        return cv2.imwrite(path, image)
+        return cv2.imwrite(path, image[..., ::-1])
     else:
         image = pil_nd2img(image)
         return image.save(path)

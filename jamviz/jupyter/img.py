@@ -15,7 +15,7 @@ __all__ = [
 
 def show_imgs(img_data, nrow=10):
     grid_img = make_grid(img_data, nrow)
-    plt.figure(figsize=(nrow, 8))
+    plt.figure(figsize=(nrow * 3, 3))
     plt.axis("off")
     plt.imshow(grid_img.permute(1, 2, 0).cpu())
 
