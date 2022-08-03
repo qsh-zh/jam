@@ -5,7 +5,7 @@
 
 system:
    envs:
-      JAM_PDB: PUDB
+      JAM_PDB: IPDB
       JAM_ShExecutor: 1089
       JAM_GPUPort: 1080
 #      WANDB_API_KEY: abc
