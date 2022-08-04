@@ -24,7 +24,7 @@ def _reshape_viz_batch_img(img_data, shape=7):
         raise RuntimeError(f"shape {shape} not support")
     if isinstance(img_data, th.Tensor):
         assert img_data.shape[1] in [1,3]
-        grid_img = make_grid(img_data[:nrow * ncol].detach().cpu(), nrow)
+        grid_img = make_grid(img_data[:nrow * ncol].detach().cpu(), ncol)
         img = grid_img.permute(1, 2, 0)
     elif isinstance(img_data, np.ndarray):
         if img_data.shape[1] in [1,3]:
@@ -35,7 +35,7 @@ def _reshape_viz_batch_img(img_data, shape=7):
 
 def show_batch_img(img_data, shape=7):
     img, nrow, ncol = _reshape_viz_batch_img(img_data, shape)
-    plt.figure(figsize=(nrow * 3, ncol * 3))
+    plt.figure(figsize=(ncol * 3, nrow * 3))
     plt.axis("off")
     plt.imshow(img)
 
@@ -55,4 +55,4 @@ def show_imgs_traj(traj_batch_img, num_img, num_steps):
     imgs = th.cat(imgs)
 
     imgs = rearrange(imgs, "(n b) ... -> (b n) ...", b=num_img)
-    show_batch_img(imgs, f"1x{num_steps}")
+    show_batch_img(imgs, f"{num_img}x{num_steps}")
