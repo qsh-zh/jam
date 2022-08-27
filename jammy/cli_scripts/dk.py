@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-# pylint: disable=global-variable-not-assigned
+# pylint: disable=global-variable-not-assigned, global-statement
 import functools
 import os
 import os.path as osp
+import re
 from subprocess import Popen
 
 import hydra
@@ -106,6 +107,21 @@ def extra_mount(cfg):
                     dk_f = hydra.utils.to_absolute_path(dk_f)
             rtn.append(f"--volume={local_f}:{dk_f}:rw")
         return rtn
+    return None
+
+
+@jamdk_wrapper
+def set_env(cfg):
+    if "env" in cfg:
+        if cfg.env is not None:
+            regexp = re.compile(r"^\$[a-zA-Z0-9_]*$")
+            rtn = []
+            for key, value in cfg.env.items():
+                if regexp.search(value):
+                    if value[1:] in os.environ:
+                        value = os.environ[value[1:]]
+                rtn.append(f"--env {key}={value}")
+            return rtn
     return None
 
 
