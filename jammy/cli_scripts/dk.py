@@ -52,6 +52,21 @@ def check_network(cfg):
 
 
 @jamdk_wrapper
+def set_env(cfg):
+    if "env" in cfg:
+        if cfg.env is not None:
+            regexp = re.compile(r"^\$[a-zA-Z0-9_]*$")
+            rtn = []
+            for key, value in cfg.env.items():
+                if regexp.search(value):
+                    if value[1:] in os.environ:
+                        value = os.environ[value[1:]]
+                rtn.extend(["--env", f"{key}={value}"])
+            return rtn
+    return None
+
+
+@jamdk_wrapper
 def check_memeory(cfg):
     mem_bytes = os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES")
     mem_gib = mem_bytes / (1024.0 ** 3)
@@ -107,21 +122,6 @@ def extra_mount(cfg):
                     dk_f = hydra.utils.to_absolute_path(dk_f)
             rtn.append(f"--volume={local_f}:{dk_f}:rw")
         return rtn
-    return None
-
-
-@jamdk_wrapper
-def set_env(cfg):
-    if "env" in cfg:
-        if cfg.env is not None:
-            regexp = re.compile(r"^\$[a-zA-Z0-9_]*$")
-            rtn = []
-            for key, value in cfg.env.items():
-                if regexp.search(value):
-                    if value[1:] in os.environ:
-                        value = os.environ[value[1:]]
-                rtn.append(f"--env {key}={value}")
-            return rtn
     return None
 
 
