@@ -40,6 +40,7 @@ if jam_getenv("IMPORT_ALL", "true", "bool"):
         synchronized,
         try_run,
     )
+    from jammy.utils.printing import stprint
 
 
 def get_jam_repo_git():
