@@ -55,7 +55,16 @@ def plotstd(mean, cov, x=None, color=None, ax=None, label=None, markersize=3):
 
 
 def mstd_plot(
-    exp_data, labels=None, size=(7, 7), ax=None, is_label=True, coef_std=1, **kwargs
+    exp_data,
+    labels=None,
+    size=(7, 7),
+    ax=None,
+    is_label=True,
+    coef_std=1,
+    marker=[
+        "-",
+    ],
+    **kwargs,
 ):
     """plot mean and std of sequence
 
@@ -109,8 +118,11 @@ def mstd_plot(
         mean = rtn_dict[exp_name]["mean"]
         above = rtn_dict[exp_name]["up"]
         down = rtn_dict[exp_name]["down"]
-        ax.plot(x, mean, "o", color=color_list[i], markersize=12)
-        ax.plot(x, mean, "-", color=color_list[i])
+        cur_color = color_list[i % len(color_list)]
+        # ax.plot(x, mean, "o", color=cur_color)
+        # ax.plot(x, mean, "-", color=cur_color)
+        for cur_marker in marker:
+            ax.plot(x, mean, cur_marker, color=cur_color)
         ax.fill_between(x, down, above, color=color_list[i], alpha=0.2)
 
     if "fix_legend" in kwargs:
