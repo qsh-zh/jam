@@ -36,7 +36,7 @@ def point_stat(data, coef_std=1, **kwargs):
         }
 
 
-def plotstd(mean, cov, x=None, color=None, ax=None, label=None, markersize=3):
+def plotstd(mean, cov, x=None, color=None, ax=None, label=None):
     if ax is None:
         _, ax = plt.subplots(1, 1)
     if color is None:
@@ -47,23 +47,21 @@ def plotstd(mean, cov, x=None, color=None, ax=None, label=None, markersize=3):
     if x is None:
         x = np.arange(len(mean))
 
-    ax.plot(x, mean, "o", color=color, markersize=markersize)
+    ax.plot(x, mean, "o", color=color)
     ax.plot(x, mean, "-", color=color, label=label)
     ax.fill_between(x, mean - cov, mean + cov, color=color, alpha=0.2)
 
     return ax
 
 
-def mstd_plot(
+def mstd_plot(  # pylint: disable=too-many-branches
     exp_data,
     labels=None,
     size=(7, 7),
     ax=None,
     is_label=True,
     coef_std=1,
-    marker=[
-        "-",
-    ],
+    marker=None,
     **kwargs,
 ):
     """plot mean and std of sequence
@@ -95,6 +93,10 @@ def mstd_plot(
         }
     """
     global color_list  # pylint: disable=global-variable-not-assigned
+    if marker is None:
+        marker = [
+            "-",
+        ]
     if labels is None:
         labels = {key_: key_ for key_ in exp_data.keys()}
     rtn_dict = {}
