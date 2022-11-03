@@ -33,9 +33,9 @@ def _reshape_viz_batch_img(img_data, shape=7):
             img = rearrange(img_data[:nrow * ncol],"(b t) h w c -> (b h) (t w) c", b=nrow)
     return img, nrow, ncol
 
-def show_batch_img(img_data, shape=7):
+def show_batch_img(img_data, shape=7, grid=3):
     img, nrow, ncol = _reshape_viz_batch_img(img_data, shape)
-    plt.figure(figsize=(ncol * 3, nrow * 3))
+    plt.figure(figsize=(ncol * grid, nrow * grid))
     plt.axis("off")
     plt.imshow(img)
 
