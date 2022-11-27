@@ -19,18 +19,18 @@ stages:
     - sed -i "/^version/s/\(.*\)/version = \"$CI_COMMIT_REF_NAME\"/" pyproject.toml
     - cat pyproject.toml
     - curl -sSL https://install.python-poetry.org | python3 -
-    - $HOME/.poetry/bin/poetry config virtualenvs.in-project true
-    - $HOME/.poetry/bin/poetry config repositories.gl https://gitlab.com/api/v4/projects/27867877/packages/pypi
-    - $HOME/.poetry/bin/poetry config --list
-    - $HOME/.poetry/bin/poetry install --no-dev -vv
+    - $HOME/.local/bin/poetry config virtualenvs.in-project true
+    - $HOME/.local/bin/poetry config repositories.gl https://gitlab.com/api/v4/projects/27867877/packages/pypi
+    - $HOME/.local/bin/poetry config --list
+    - $HOME/.local/bin/poetry install --no-dev -vv
 
 .pub-template: &pub
   <<: *install-deps
   stage: pubs
   script:
       - env
-      - $HOME/.poetry/bin/poetry build
-      - $HOME/.poetry/bin/poetry publish -r gl -u "$GITLAB_PYPI_NAME" -p "$GITLAB_PYPI_PWD"
+      - $HOME/.local/bin/poetry build
+      - $HOME/.local/bin/poetry publish -r gl -u "$GITLAB_PYPI_NAME" -p "$GITLAB_PYPI_PWD"
   only:
     - tags
 
@@ -38,8 +38,8 @@ stages:
   <<: *install-deps
   stage: pypi-pub
   script:
-      - $HOME/.poetry/bin/poetry build
-      - POETRY_PYPI_TOKEN_PYPI=$PYPI_TOKEN $HOME/.poetry/bin/poetry publish
+      - $HOME/.local/bin/poetry build
+      - POETRY_PYPI_TOKEN_PYPI=$PYPI_TOKEN $HOME/.local/bin/poetry publish
   only:
       - /^[0-9]+[.][0-9]+([.][0-9]+)?$/
 
