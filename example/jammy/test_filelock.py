@@ -1,7 +1,8 @@
-import jammy.io as io
-from jammy.utils.filelock import FileLock
-from multiprocessing import Pool
+# pylint: skip-file
 import time
+from multiprocessing import Pool
+
+from filelock import FileLock
 
 w_file = "writing.log"
 
@@ -9,7 +10,7 @@ w_file = "writing.log"
 def work(pid):
     global w_file
     try:
-        with FileLock(f"{w_file}.lock", 10) as flock:
+        with FileLock(f"{w_file}.lock", 20) as flock:
             if flock.is_locked:
                 with open(w_file, "a") as f:
                     f.write(f"{pid}\n")
