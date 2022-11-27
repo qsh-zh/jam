@@ -2,8 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch as th
 from einops import rearrange
-from torchvision.utils import make_grid
 from PIL import Image
+from torchvision.utils import make_grid
 
 __all__ = [
     "show_batch_img",
@@ -11,7 +11,8 @@ __all__ = [
     "show_imgs_traj",
 ]
 
-def _reshape_viz_batch_img(img_data, shape=7): 
+
+def _reshape_viz_batch_img(img_data, shape=7):
     if isinstance(shape, int):
         nrow, ncol = shape, shape
     elif isinstance(shape, str):
@@ -23,15 +24,20 @@ def _reshape_viz_batch_img(img_data, shape=7):
     else:
         raise RuntimeError(f"shape {shape} not support")
     if isinstance(img_data, th.Tensor):
-        assert img_data.shape[1] in [1,3]
-        grid_img = make_grid(img_data[:nrow * ncol].detach().cpu(), ncol)
+        assert img_data.shape[1] in [1, 3]
+        grid_img = make_grid(img_data[: nrow * ncol].detach().cpu(), ncol)
         img = grid_img.permute(1, 2, 0)
     elif isinstance(img_data, np.ndarray):
-        if img_data.shape[1] in [1,3]:
-            img = rearrange(img_data[:nrow * ncol],"(b t) c h w -> (b h) (t w) c", b=nrow)
+        if img_data.shape[1] in [1, 3]:
+            img = rearrange(
+                img_data[: nrow * ncol], "(b t) c h w -> (b h) (t w) c", b=nrow
+            )
         else:
-            img = rearrange(img_data[:nrow * ncol],"(b t) h w c -> (b h) (t w) c", b=nrow)
+            img = rearrange(
+                img_data[: nrow * ncol], "(b t) h w c -> (b h) (t w) c", b=nrow
+            )
     return img, nrow, ncol
+
 
 def show_batch_img(img_data, shape=7, grid=3, is_n1p1=False, auto_n1p1=True):
     if is_n1p1:
@@ -49,13 +55,15 @@ def show_batch_img(img_data, shape=7, grid=3, is_n1p1=False, auto_n1p1=True):
     plt.axis("off")
     plt.imshow(img)
 
-def save_batch_img(fpath, img_data, shape=7): 
+
+def save_batch_img(fpath, img_data, shape=7):
     img, _, _ = _reshape_viz_batch_img(img_data, shape)
     if isinstance(img, np.ndarray):
         img = th.from_numpy(img)
     ndarr = img.mul(255).add_(0.5).clamp_(0, 255).to("cpu", th.uint8).numpy()
     im = Image.fromarray(ndarr)
     im.save(fpath)
+
 
 def show_imgs_traj(traj_batch_img, num_img, num_steps):
     idx = np.linspace(0, len(traj_batch_img) - 1, num_steps, dtype=int)
