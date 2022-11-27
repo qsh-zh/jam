@@ -33,9 +33,19 @@ def _reshape_viz_batch_img(img_data, shape=7):
             img = rearrange(img_data[:nrow * ncol],"(b t) h w c -> (b h) (t w) c", b=nrow)
     return img, nrow, ncol
 
-def show_batch_img(img_data, shape=7):
+def show_batch_img(img_data, shape=7, grid=3, is_n1p1=False, auto_n1p1=True):
+    if is_n1p1:
+        img_data = (img_data + 1) / 2
+    else:
+        if auto_n1p1:
+            if isinstance(img_data, th.Tensor):
+                if img_data.min().item() < -0.5:
+                    img_data = (img_data + 1) / 2
+            elif isinstance(img_data, np.ndarray):
+                if np.min(img_data) < -0.5:
+                    img_data = (img_data + 1) / 2
     img, nrow, ncol = _reshape_viz_batch_img(img_data, shape)
-    plt.figure(figsize=(ncol * 3, nrow * 3))
+    plt.figure(figsize=(ncol * grid, nrow * grid))
     plt.axis("off")
     plt.imshow(img)
 
