@@ -18,7 +18,7 @@ stages:
   before_script:
     - sed -i "/^version/s/\(.*\)/version = \"$CI_COMMIT_REF_NAME\"/" pyproject.toml
     - cat pyproject.toml
-    - curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+    - curl -sSL https://install.python-poetry.org | python3 -
     - $HOME/.poetry/bin/poetry config virtualenvs.in-project true
     - $HOME/.poetry/bin/poetry config repositories.gl https://gitlab.com/api/v4/projects/27867877/packages/pypi
     - $HOME/.poetry/bin/poetry config --list
