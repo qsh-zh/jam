@@ -4,7 +4,9 @@ def register_rng():
     try:
         import torch
         # This will also automatically initialize cuda seeds.
-        global_rng_registry.register('torch', lambda: torch.manual_seed)
+        global_rng_registry.register('torch.manual_seed', lambda: torch.manual_seed)
+        global_rng_registry.register('torch.cuda.manual_seed', lambda: torch.cuda.manual_seed)
+        global_rng_registry.register('torch.cuda.manual_seed_all', lambda: torch.cuda.manual_seed_all)
     except ImportError:
         pass
 
