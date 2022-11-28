@@ -28,13 +28,15 @@ def try_filelock(
 
 
 @contextlib.contextmanager
-def get_filelock(target_file, is_soft=False, timeout=20):
+def get_filelock(target_file, timeout=20, is_soft=False):
     lock_obj = SoftFileLock if is_soft else FileLock
     try:
         with lock_obj(f"{target_file}._lock", timeout) as flock:
             if flock.is_locked:
-                yield
+                yield True
             else:
                 print(f"Timeout!!! {target_file}")
+                yield False
     except Exception as e:
         print(e)
+        yield False
